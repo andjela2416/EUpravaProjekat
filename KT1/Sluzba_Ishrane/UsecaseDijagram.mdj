@@ -1,0 +1,1374 @@
+{
+	"_type": "Project",
+	"_id": "AAAAAAFF+h6SjaM2Hec=",
+	"name": "Untitled",
+	"ownedElements": [
+		{
+			"_type": "UMLModel",
+			"_id": "AAAAAAFF+qBWK6M3Z8Y=",
+			"_parent": {
+				"$ref": "AAAAAAFF+h6SjaM2Hec="
+			},
+			"name": "Model",
+			"ownedElements": [
+				{
+					"_type": "UMLClassDiagram",
+					"_id": "AAAAAAFF+qBtyKM79qY=",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "Main",
+					"defaultDiagram": true,
+					"ownedViews": [
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyADLbybLY68=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 224,
+							"top": 448,
+							"width": 80,
+							"height": 80
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyAEJYibR8HY=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 128,
+							"top": 80,
+							"width": 72,
+							"height": 72
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyAE4NSbWIWw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 576,
+							"top": 64,
+							"width": 80,
+							"height": 80
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAGGSiba9Ss=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "160:152;160:241"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAHf7Cbhtt8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "616:144;615:240"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAH02ibkRoQ=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "160:168;200:216"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAILgibnoCg=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "160:168;120:208"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAJRpybs0Fw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "160:240;127:296"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAKb/CbxVbg=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "160:240;195:290"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAQaHycZkps=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "616:160;571:222"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyARegCcgcQE=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "616:160;653:213"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyASKCScl7PM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "616:240;577:296"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAS3eCcq3F8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "640:296;613:238"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyAS8Vict8yg=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 607,
+							"top": 285,
+							"width": 100,
+							"height": 25
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAT0TCcxiR8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "264:528;256:639"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAVBySc2B7E=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "256:640;210:688"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAVp7ic60fw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "280:688;257:636"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAWWdCc+Ypo=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "264:552;196:600"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAXCCSdDs2A=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "320:600;260:552"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAYjESdH7cs=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "208:96;245:71"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyAZAlydKwCk=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "112:96;85:72"
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyAaBISdOJWY=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 232,
+							"top": 40,
+							"width": 152,
+							"height": 56
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyAbqoidSo6s=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 279,
+							"top": 53,
+							"width": 100,
+							"height": 25,
+							"text": "Prijava"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyAcqVidYMEs=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 32,
+							"top": 49,
+							"width": 147,
+							"height": 25
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyAeEhyddXSI=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"top": 16,
+							"width": 104,
+							"height": 56
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyAfsmCdopw4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 16,
+							"top": 32,
+							"width": 148,
+							"height": 157,
+							"text": "Odjava"
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBCbHSfTIGg=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 360,
+							"top": 112,
+							"width": 160,
+							"height": 56
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBDI9CfWmfg=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 368,
+							"top": 208,
+							"width": 176,
+							"height": 64
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBDcBifZmes=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 384,
+							"top": 296,
+							"width": 160,
+							"height": 50
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBD4Ayfc70I=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 384,
+							"top": 120,
+							"width": 120,
+							"height": 48,
+							"text": "pracenje obroka u studentskom domu"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBHQASfmB9U=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 416,
+							"top": 304,
+							"width": 103,
+							"height": 40,
+							"text": "prijem porudbine"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBMpBifukyc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Courier;13;0",
+							"showShadow": false,
+							"left": 568,
+							"top": 304,
+							"width": 144,
+							"height": 38,
+							"text": "korisnik usluga ishrane"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBRQICf9//8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Courier;13;0",
+							"left": 128,
+							"top": 304,
+							"width": 122,
+							"height": 33,
+							"text": "Osoba"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBTa5ygDjrw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Courier;13;0",
+							"left": 208,
+							"top": 708,
+							"width": 80.21142578125,
+							"height": 29,
+							"text": "Musterija"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyBj78ygZlAI=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "576:144;520:144"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyBkUPSgcfjI=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "576:192;531:224"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyBklZCgfCY4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "576:256;528:304"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBnDuygjwl0=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 392,
+							"top": 224,
+							"width": 160,
+							"height": 38,
+							"text": "Otkazivanje porudzbine"
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBsEUygoJ0Q=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 8,
+							"top": 456,
+							"width": 176,
+							"height": 64
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBsY8CgrzSc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"top": 560,
+							"width": 144,
+							"height": 56
+						},
+						{
+							"_type": "EllipseView",
+							"_id": "AAAAAAGOyBsmgiguNYU=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"top": 656,
+							"width": 144,
+							"height": 56
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBulwSg0ouY=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 32,
+							"top": 568,
+							"width": 100,
+							"height": 38,
+							"text": "Otkazivanje porudzbine"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyBxtFSg5tL4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 16,
+							"top": 475,
+							"width": 168,
+							"height": 38,
+							"text": "Ocenjivanje i recenzija jela"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyB0L6ShB7K8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 32,
+							"top": 672,
+							"width": 77.92626953125,
+							"height": 25,
+							"text": "Porucivanje"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyB3F/yhIEUc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "224:488;184:486"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyB3cBChLBzs=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "216:536;144:578"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOyB3vBihOzyc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "136:672;188:622"
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyCFvOCh2O20=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 8,
+							"width": 192,
+							"height": 176
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCF/oSh5c3U=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 8,
+							"width": 100,
+							"height": 25,
+							"text": "Prijava"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCPQKyh+VKM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 32,
+							"width": 100,
+							"height": 25,
+							"text": "Preduslov:-"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCR0GSiD16M=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 48,
+							"width": 200,
+							"height": 25,
+							"text": "Koraci:-Unos korisnickog imena"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCcHwCiTDK4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 872,
+							"top": 64,
+							"width": 100,
+							"height": 25,
+							"text": "-Unos lozinke"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCejuyiaqH4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 872,
+							"top": 80,
+							"width": 100,
+							"height": 25,
+							"text": "-Potvrda unosa"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCfg3iifZOY=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 104,
+							"width": 192,
+							"height": 51,
+							"text": "Rezultat:Korisnik je prijavljen na sistem"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCkrViillZA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 144,
+							"width": 192,
+							"height": 38,
+							"text": "Izuzeci: Pogresno korisnicko ime ili lozinka"
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyCpfZij2lW0=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 835,
+							"top": 200,
+							"width": 197,
+							"height": 128
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZij3tzw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 835,
+							"top": 200,
+							"width": 100,
+							"height": 25,
+							"text": "Odjava"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj4qko=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 835,
+							"top": 224,
+							"width": 100,
+							"height": 25,
+							"text": "Preduslov:-"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj5A5E=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 835,
+							"top": 240,
+							"width": 200,
+							"height": 25,
+							"text": "Koraci:-klik na dugme 'Odjavi se'"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj6ccc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 875,
+							"top": 256,
+							"width": 100,
+							"height": 25
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj74tw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 875,
+							"top": 272,
+							"width": 100,
+							"height": 25
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj8Zj4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 264,
+							"width": 192,
+							"height": 51,
+							"text": "Rezultat:Korisnik je odjavljen sa sistema"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyCpfZyj93IY=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 835,
+							"top": 304,
+							"width": 192,
+							"height": 25,
+							"text": "Izuzeci: -"
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyDCqHCkdd1k=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 336,
+							"width": 224,
+							"height": 264
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDCqHCkeB5s=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Lato;13;0",
+							"left": 808,
+							"top": 336,
+							"width": 181,
+							"height": 25,
+							"text": "Ocenjivanje i recenzija jela"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDCqHCkfUx4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 360,
+							"width": 205,
+							"height": 51,
+							"text": "Preduslov: musterija mora da ima bar 1 porucenu hranu koju ocenjuje"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDCqHCkgkCM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 424,
+							"width": 232,
+							"height": 25,
+							"text": "-odabere jelo za ocenjivanje"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDCqHCkjhYM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 528,
+							"width": 192,
+							"height": 38,
+							"text": "Rezultat:iskustvo korisnika je dodeljeno  obroku"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDCqHCkkbeU=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 560,
+							"width": 248,
+							"height": 38,
+							"text": "Izuzeci: musterija nije imala ni 1 poruceno jelo."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDayoSld+pA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 448,
+							"width": 256,
+							"height": 40,
+							"text": "-Klikni na \"Oceni i recenziraj\" pored odabranog jela"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDkNbylyuds=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 408,
+							"width": 100,
+							"height": 25,
+							"text": "Koraci:"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDp7sCl+VAM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 480,
+							"width": 218,
+							"height": 25,
+							"text": "-Unesi ocenu i recenziju jela"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyDubZCmNpV8=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 808,
+							"top": 504,
+							"width": 100,
+							"height": 25,
+							"text": "-Potvrdi unos."
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyD5rYimkKWA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 555,
+							"top": 380,
+							"width": 245,
+							"height": 204
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyD5rYimlDWk=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 555,
+							"top": 380,
+							"width": 189,
+							"height": 38,
+							"text": "Otkazivanje porudzbine"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyD5rYimmTZM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 552,
+							"top": 408,
+							"width": 264,
+							"height": 38,
+							"text": "Preduslov:Korisnik je prijavljen na sistem."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyD5rYimnJQI=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 555,
+							"top": 440,
+							"width": 245,
+							"height": 25,
+							"text": "Koraci:-Pronaći aktivnu porudžbinu."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyD5rYimquuU=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 552,
+							"top": 512,
+							"width": 192,
+							"height": 38,
+							"text": "Rezultat:Korisnik je uspesno obrisao porudzbinu."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyD5rYimrdrE=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 555,
+							"top": 544,
+							"width": 192,
+							"height": 38,
+							"text": "Izuzeci: vise od 30min je proslo nakon porudbine."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyEGTsynLXWc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 592,
+							"top": 456,
+							"width": 240,
+							"height": 38,
+							"text": "-Kliknuti na opciju za otkazivanje."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyIo9ICnhaTA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 592,
+							"top": 472,
+							"width": 175,
+							"height": 25,
+							"text": "-Potvrdi otkazivanje."
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyJEj8yoG6IU=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 608,
+							"width": 216,
+							"height": 200
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyJEj8yoH2yM=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 612,
+							"width": 155,
+							"height": 27,
+							"text": "prijem porudbine\n"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyJEj8yoI2Kk=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 632,
+							"width": 211,
+							"height": 38,
+							"text": "Preduslov:korisnik u.i. je prijavljen na sistem"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyJEj8yoJfmc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 664,
+							"width": 200,
+							"height": 25,
+							"text": "Koraci:- vidi spisak porudbina"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyJEj8yoMXOc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 736,
+							"width": 192,
+							"height": 51,
+							"text": "Rezultat: porudbina je prihvacena "
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyJEj8yoNG4k=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 816,
+							"top": 784,
+							"width": 192,
+							"height": 25,
+							"text": "Izuzeci: -"
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyNUfFSpPz8g=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 587,
+							"top": 592,
+							"width": 216,
+							"height": 213
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyNUfFSpQCDA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 584,
+							"top": 592,
+							"width": 155,
+							"height": 25,
+							"text": "Porucivanje"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyNUfFSpRgdc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 587,
+							"top": 608,
+							"width": 211,
+							"height": 38,
+							"text": "Preduslov:musterija mora da bude prijavljena"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyNUfFSpSTO4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 584,
+							"top": 648,
+							"width": 200,
+							"height": 25,
+							"text": "Koraci:- vidi listu obroka"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyNUfFSpT0B0=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 587,
+							"top": 736,
+							"width": 192,
+							"height": 32,
+							"text": "Rezultat: kreirana porudzbina"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyNUfFSpUEoo=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 587,
+							"top": 781,
+							"width": 192,
+							"height": 27,
+							"text": "Izuzeci: -\n"
+						},
+						{
+							"_type": "RectangleView",
+							"_id": "AAAAAAGOyOADmippcpw=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 592,
+							"width": 227,
+							"height": 232
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyOADmipqrJo=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 592,
+							"width": 232,
+							"height": 25,
+							"text": "Pracenje obroka u studentskom domu"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyOADmipr4sQ=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 616,
+							"width": 211,
+							"height": 38,
+							"text": "Preduslov: korisnik u.i. je prijavljen na sistem"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyOADmipsO9g=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 656,
+							"width": 200,
+							"height": 51,
+							"text": "Koraci:- vidi spisak obroka svih bolesnih studenata iz stud. doma."
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyOADmiptEBE=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 744,
+							"width": 192,
+							"height": 51,
+							"text": "Rezultat: Ispravni obroci za bolesne studente"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyOADmipuLhc=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 781,
+							"width": 192,
+							"height": 25,
+							"text": "Izuzeci: -"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyPxZsyqhc2A=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 584,
+							"top": 664,
+							"width": 216,
+							"height": 40,
+							"text": "-klikne na dugme 'odaberi' pored obroka koji zeli da naruci\n"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOySgE7CrGMQE=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 584,
+							"top": 696,
+							"width": 100,
+							"height": 38,
+							"text": "-klikne na dugme 'poruci' "
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyS5nvyrdnPs=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 344,
+							"top": 696,
+							"width": 224,
+							"height": 38,
+							"text": "-klikom na dugme 'izmeni' pored studenta moze da izmeni obrok"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOyUWijisGdWA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 824,
+							"top": 680,
+							"width": 200,
+							"height": 51,
+							"text": "-klik na dugme 'prihvati' pored porudzbine"
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGOydGWlCsbK7Q=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"left": 454,
+							"top": 471,
+							"width": 100,
+							"height": 25,
+							"text": "-"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOydR3cStpsKs=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "248:440;201:310",
+							"headEndStyle": 1
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOydVMtytv94k=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "352:240;216:228",
+							"headEndStyle": 1
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOydVUFitypbA=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "336:232;336:232"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOydVe5yt1oeI=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "280:224;280:224"
+						},
+						{
+							"_type": "FreelineEdgeView",
+							"_id": "AAAAAAGOydVhhCt4xy4=",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"font": "Arial;13;0",
+							"lineStyle": 1,
+							"points": "280:232;280:232"
+						}
+					]
+				},
+				{
+					"_type": "UMLCollaboration",
+					"_id": "AAAAAAGOyAic+yduI7Y=",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "oo",
+					"documentation": "oooo\n",
+					"stereotype": "ooo"
+				},
+				{
+					"_type": "UMLCollaboration",
+					"_id": "AAAAAAGOyAmNqSeimLE=",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "Pracenje obroka u stud. domu"
+				},
+				{
+					"_type": "Hyperlink",
+					"_id": "AAAAAAGOyCB+OihidPM=",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "Prijava",
+					"url": "oo"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "AAAAAAGOydOBMysi1u0=",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "Class1"
+				}
+			]
+		}
+	]
+}
