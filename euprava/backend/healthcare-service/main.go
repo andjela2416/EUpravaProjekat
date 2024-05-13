@@ -49,6 +49,7 @@ func main() {
 
 	router.HandleFunc("/appointments", healthCareHandler.GetAllAppointments).Methods(http.MethodGet)
 	router.HandleFunc("/therapies", healthCareHandler.GetAllTherapies).Methods(http.MethodGet)
+	router.HandleFunc("/doneTherapies", healthCareHandler.GetDoneTherapiesFromFoodService).Methods(http.MethodGet)
 
 	scheduleAppointment := router.Methods(http.MethodPost).Subrouter()
 	scheduleAppointment.HandleFunc("/appointments", healthCareHandler.ScheduleAppointment)

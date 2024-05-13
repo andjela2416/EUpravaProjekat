@@ -140,6 +140,25 @@ func (h *HealthCareHandler) SaveAndShareTherapyDataWithDietService(rw http.Respo
 	rw.WriteHeader(http.StatusOK)
 }
 
+func (h *HealthCareHandler) GetDoneTherapiesFromFoodService(rw http.ResponseWriter, r *http.Request) {
+	doneTherapies, err := h.healthCareRepo.GetDoneTherapiesFromFoodService()
+	if err != nil {
+		h.logger.Printf("Error getting done therapies from food service: %v\n", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error getting done therapies from food service"))
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(rw).Encode(doneTherapies)
+	if err != nil {
+		h.logger.Printf("Error encoding done therapies to JSON: %v\n", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error encoding done therapies to JSON"))
+		return
+	}
+}
+
 func (s *HealthCareHandler) MiddlewareStudentDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
 		students := &data.Student{}

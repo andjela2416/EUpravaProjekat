@@ -2,11 +2,14 @@ package data
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -245,6 +248,51 @@ func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData)
 		}*/
 
 	return nil
+}
+
+// Funkcija koja dobavlja terapije koje su završene sa servera za ishranu
+func (rr *HealthCareRepo) GetDoneTherapiesFromFoodService() (Therapies, error) {
+	// Konstruisanje URL endpointa za dobavljanje terapija koje su završene
+	foodServiceHost := os.Getenv("FOOD_SERVICE_HOST")
+	foodServicePort := os.Getenv("FOOD_SERVICE_PORT")
+	foodServiceEndpoint := fmt.Sprintf("http://%s:%s/therapies/done", foodServiceHost, foodServicePort)
+
+	// Kreiranje HTTP GET zahteva na odgovarajući endpoint
+	req, err := http.NewRequest("GET", foodServiceEndpoint, nil)
+	if err != nil {
+		rr.logger.Println("Error creating request to food service:", err)
+		return nil, err
+	}
+
+	// Slanje zahteva serveru za ishranu
+	resp, err := rr.client.Do(req)
+	if err != nil {
+		rr.logger.Println("Error sending request to food service:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Provera status koda odgovora
+	if resp.StatusCode != http.StatusOK {
+		rr.logger.Println("Food service returned non-OK status code:", resp.StatusCode)
+		return nil, errors.New("food service returned non-OK status code")
+	}
+
+	// Čitanje odgovora
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		rr.logger.Println("Error reading response from food service:", err)
+		return nil, err
+	}
+
+	// Parsiranje odgovora u listu terapija
+	var therapies Therapies
+	if err := json.Unmarshal(body, &therapies); err != nil {
+		rr.logger.Println("Error parsing response from food service:", err)
+		return nil, err
+	}
+
+	return therapies, nil
 }
 
 func (rr *HealthCareRepo) getCollection(collectionName string) *mongo.Collection {

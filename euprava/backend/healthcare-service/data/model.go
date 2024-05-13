@@ -32,9 +32,18 @@ type TherapyData struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	StudentID primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
 	Diagnosis string             `bson:"diagnosis,omitempty" json:"diagnosis,omitempty"`
+	Status    Status             `bson:"status,omitempty" json:"status,omitempty"`
 	//Medications  []Medication       `bson:"medications,omitempty" json:"medications,omitempty"`
 	//Instructions string             `bson:"instructions,omitempty" json:"instructions,omitempty"`
 }
+
+type Status string
+
+const (
+	SentToFoodService = "sent to food service"
+	Done              = "done"
+	Undone            = "undone"
+)
 
 type Therapies []*TherapyData
 
