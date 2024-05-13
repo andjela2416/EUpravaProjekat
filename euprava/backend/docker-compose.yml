@@ -35,8 +35,8 @@ services:
       - network
 
   auth-service:
-    image: auth-service
-    container_name: auth-service
+    image: jboss/keycloak:latest
+    container_name: auth.service
     build:
       context: .
     environment:
@@ -47,9 +47,9 @@ services:
       - KEYCLOAK_REDIRECT_URL=http://localhost:8080/callback
 
     volumes:
-      - ./.containers/identity:/opt/jboss/keycloak/standalone/data
+      - ./.containers/keycloak:/opt/jboss/keycloak/standalone/data
     ports:
-      - 18080:18080
+      - 18080:8080
 
 
   healthcare_db:
