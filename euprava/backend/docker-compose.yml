@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+
+  healthcare_service:
+    image: healthcare_service
+    container_name: healthcare_service
+    build:
+      context: .
+      dockerfile: ./healthcare-service/Dockerfile
+    restart: always
+    ports:
+      - ${HEALTHCARE_SERVICE_PORT}:${HEALTHCARE_SERVICE_PORT}
+    environment:
+      HEALTHCARE_DB_HOST: ${HEALTHCARE_DB_HOST}
+      HEALTHCARE_DB_PORT: ${HEALTHCARE_DB_PORT}
+      HEALTHCARE_SERVICE_PORT: ${HEALTHCARE_SERVICE_PORT}
+      HEALTHCARE_SERVICE_HOST: ${HEALTHCARE_SERVICE_HOST}
+    depends_on:
+      - healthcare_db
+    networks:
+      - network
+    volumes:
+      - logs_volume:/logs
+
+  api_gateway:
+    build:
+      context: ./api_gateway/
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    restart: on-failure
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    networks:
+      - network
+
+  healthcare_db:
+    image: mongo
+    container_name: healthcare_db
+    restart: on-failure
+    networks:
+      - network
+
+volumes:
+
+  logs_volume:
+
+networks:
+  network:
+    driver: bridge
