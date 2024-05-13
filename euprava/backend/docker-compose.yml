@@ -34,6 +34,37 @@ services:
     networks:
       - network
 
+  auth-service:
+    image: jboss/keycloak:latest
+    container_name: auth_service
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_IMPORT=
+      - KEYCLOAK_CLIENT_ID=your-client-id
+      - KEYCLOAK_CLIENT_SECRET=your-client-secret
+      - KEYCLOAK_REDIRECT_URL=http://auth-service:8080/callback
+      - KEYCLOAK_ALLOWED_AUDIENCE=your-client-id
+    volumes:
+      - ./.containers/identity:/opt/jboss/keycloak/standalone/data
+    ports:
+      - 18080:8080
+    depends_on:
+      - auth-service-web
+
+  auth-service-web:
+    build: .
+    container_name: auth_service_web
+    environment:
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    depends_on:
+      - auth-service
+
+
   healthcare_db:
     image: mongo
     container_name: healthcare_db

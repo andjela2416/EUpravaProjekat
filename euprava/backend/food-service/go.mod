@@ -1,4 +1,4 @@
-module healthcare-service
+module food-service
 
 go 1.20
 
