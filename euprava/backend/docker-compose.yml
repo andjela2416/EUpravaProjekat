@@ -45,11 +45,50 @@ services:
       - KEYCLOAK_CLIENT_ID=euprava
       - KEYCLOAK_CLIENT_SECRET=dz0a1vY7Jqgbw59W0KiZs1rffuHB2a1t
       - KEYCLOAK_REDIRECT_URL=http://localhost:8080/callback
-
     volumes:
       - ./.containers/keycloak:/opt/jboss/keycloak/standalone/data
     ports:
       - 18080:8080
+
+  university-service:
+    build:
+      context: ./university_data_base
+      dockerfile: dockerfile
+    restart: always
+    container_name: "university-service"
+    hostname: "university-service"
+    ports:
+      - 8081:8081
+    environment:
+      - PORT=8081
+      - MONGO_DB_URI=mongodb://root:pass@user_data_base:27017
+    depends_on:
+      university_data_base:
+        condition: service_healthy
+    networks:
+      - network
+  
+  university_data_base:
+    hostname: "university_data_base"
+    container_name: "university_data_base"
+    image: mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: universityDB
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - university_data_base:/data/db
+    networks:
+      - network
+
 
 
   healthcare_db:
@@ -60,7 +99,7 @@ services:
       - network
 
 volumes:
-
+  university_data_base:
   logs_volume:
 
 networks:

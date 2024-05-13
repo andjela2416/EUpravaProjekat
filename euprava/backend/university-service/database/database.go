@@ -1,32 +1,41 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Env struct {
-	DB *sql.DB
+func DBinstance() *mongo.Client {
+	MongoDb := os.Getenv("MONGO_DB_URI")
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDb))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Connected to MongoDB!")
+
+	return client
 }
 
-func ConnectDB() (*sql.DB, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Error loading .env")
-	}
+var Client *mongo.Client = DBinstance()
 
-	connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 
-	db, err := sql.Open("postgres", connString)
-	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
-		return nil, err
-	}
+	var collection *mongo.Collection = client.Database("universityDB").Collection(collectionName)
 
-	return db, nil
+	return collection
 }

@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
-
-	"backend/university-service/database"
 )
 
 func main() {
@@ -17,13 +14,6 @@ func main() {
 	if port == "" {
 		port = "8001"
 	}
-
-	db, err := database.ConnectDB()
-	if err != nil {
-		panic("Failed to connect to the database")
-	}
-	defer db.Close()
-	fmt.Println("Connected to the database")
 
 	router := gin.New()
 	router.Use(gin.Logger())
