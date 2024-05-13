@@ -47,6 +47,17 @@ func main() {
 	insertStudent.HandleFunc("/students", healthCareHandler.InsertStudent)
 	insertStudent.Use(healthCareHandler.MiddlewareStudentDeserialization)
 
+	router.HandleFunc("/appointments", healthCareHandler.GetAllAppointments).Methods(http.MethodGet)
+	router.HandleFunc("/therapies", healthCareHandler.GetAllTherapies).Methods(http.MethodGet)
+
+	scheduleAppointment := router.Methods(http.MethodPost).Subrouter()
+	scheduleAppointment.HandleFunc("/appointments", healthCareHandler.ScheduleAppointment)
+	scheduleAppointment.Use(healthCareHandler.MiddlewareAppointmentDeserialization)
+
+	saveTherapy := router.Methods(http.MethodPost).Subrouter()
+	saveTherapy.HandleFunc("/therapy", healthCareHandler.SaveAndShareTherapyDataWithDietService)
+	saveTherapy.Use(healthCareHandler.MiddlewareTherapyDeserialization)
+
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,
