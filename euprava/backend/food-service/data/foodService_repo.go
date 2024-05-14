@@ -2,11 +2,13 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -113,6 +115,72 @@ func (rr *FoodServiceRepo) EditFoodForStudent(studentID string, newFood string) 
 	}
 	rr.logger.Printf("Food updated successfully for student with ID: %s\n", studentID)
 	return nil
+}
+
+var therapiesList Therapies
+
+func CacheTherapies(therapies Therapies) {
+	//therapiesList = append(therapiesList, therapies...)
+	for _, therapy := range therapies {
+		therapiesList = append(therapiesList, therapy)
+	}
+}
+
+func GetCachedTherapies() Therapies {
+	return therapiesList
+}
+
+// funkcija dobavlja sve terapije iz Food servisa.
+func (rr *FoodServiceRepo) GetAllTherapiesFromFoodService() (Therapies, error) {
+	return GetCachedTherapies(), nil
+}
+
+func (rr *FoodServiceRepo) SaveTherapyData(therapyData *TherapyData) error {
+
+	therapiesList = append(therapiesList, therapyData)
+
+	return nil
+}
+
+// GetAllTherapiesFromHealthCareService funkcija dobavlja sve terapije iz HealthCare servisa.
+func (rr *FoodServiceRepo) GetAllTherapiesFromHealthCareService() (Therapies, error) {
+	healthCareHost := os.Getenv("HEALTHCARE_SERVICE_HOST")
+	healthCarePort := os.Getenv("HEALTHCARE_SERVICE_PORT")
+	healthCareEndpoint := fmt.Sprintf("http://%s:%s/therapies", healthCareHost, healthCarePort)
+
+	req, err := http.NewRequest("GET", healthCareEndpoint, nil)
+	if err != nil {
+		rr.logger.Println("Error creating request to health care service:", err)
+		return nil, err
+	}
+
+	resp, err := rr.client.Do(req)
+	if err != nil {
+		rr.logger.Println("Error sending request to health care service:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		rr.logger.Println("Health care service returned non-OK status code:", resp.StatusCode)
+		return nil, fmt.Errorf("health care service returned non-OK status code: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		rr.logger.Println("Error reading response from health care service:", err)
+		return nil, err
+	}
+
+	var therapies Therapies
+	if err := json.Unmarshal(body, &therapies); err != nil {
+		rr.logger.Println("Error parsing response from health care service:", err)
+		return nil, err
+	}
+
+	CacheTherapies(therapies)
+
+	return therapies, nil
 }
 
 func (rr *FoodServiceRepo) getCollection() *mongo.Collection {
