@@ -63,6 +63,45 @@ services:
     networks:
       - network
 
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: dockerfile
+    restart: always
+    container_name: "user-service"
+    hostname: "user-service"
+    ports:
+      - 8080:8080
+    environment:
+      - PORT=8080
+      - MONGO_DB_URI=mongodb://root:pass@user_data_base:27017
+    depends_on:
+      user_data_base:
+        condition: service_healthy
+    networks:
+      - network
+
+  user_data_base:
+    hostname: "user_data_base"
+    container_name: "user_data_base"
+    image: mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: userDB
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - user_data_base:/data/db
+    networks:
+      - network
+
   # keycloak:
   #   image: jboss/keycloak:latest
   #   container_name: keycloak
