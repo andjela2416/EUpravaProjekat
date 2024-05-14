@@ -1,19 +1,15 @@
-module backend/university-service
+module auth-service
 
 go 1.20
 
-require (
-	github.com/gin-gonic/gin v1.10.0
-	github.com/itsjamie/gin-cors v0.0.0-20220228161158-ef28d3d2a0a8
-	github.com/joho/godotenv v1.5.1
-	github.com/lib/pq v1.10.9
-)
+require github.com/gin-gonic/gin v1.10.0
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -32,6 +28,7 @@ require (
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/oauth2 v0.20.0
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
