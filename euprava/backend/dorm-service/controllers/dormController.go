@@ -18,7 +18,7 @@ type DormController struct {
 
 func (dc DormController) GetStudentByID(studentId string) (*data.Student, error) {
 
-	uniUrl := fmt.Sprintf("http://university-service:8081/get/student", studentId)
+	uniUrl := fmt.Sprintf("http://university-service:8001/student/studentID/%v", studentId)
 	uniResponse, err := http.Get(uniUrl)
 	if err != nil {
 		dc.logger.Printf("Error making GET request for student: %v", err)
