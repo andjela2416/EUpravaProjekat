@@ -1,8 +1,8 @@
 FROM golang:latest as builder
 WORKDIR /app
-COPY ./healthcare-service/go.mod ./healthcare-service/go.sum ./
+COPY ./food-service/go.mod ./food-service/go.sum ./
 RUN go mod download
-COPY ./healthcare-service/ .
+COPY ./food-service/ .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:latest

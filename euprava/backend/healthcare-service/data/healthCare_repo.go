@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -215,37 +216,37 @@ func (rr *HealthCareRepo) SaveAndShareTherapyDataWithDietService(therapyData *Th
 
 // SendTherapyDataToDietService funkcija šalje podatke o terapiji službi ishrane
 func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData) error {
-	/*
-		therapyJSON, err := json.Marshal(therapyData)
-		if err != nil {
-			rr.logger.Println("Error serializing therapy data:", err)
-			return err
-		}
 
-		foodServiceHost := os.Getenv("FOOD_SERVICE_HOST")
-		foodServicePort := os.Getenv("FOOD_SERVICE_PORT")
-		foodServiceEndpoint := fmt.Sprintf("http://%s:%s/therapy", foodServiceHost, foodServicePort)
+	therapyJSON, err := json.Marshal(therapyData)
+	if err != nil {
+		rr.logger.Println("Error serializing therapy data:", err)
+		return err
+	}
 
-		req, err := http.NewRequest("POST", foodServiceEndpoint, bytes.NewBuffer(therapyJSON))
-		if err != nil {
-			rr.logger.Println("Error creating request to food service:", err)
-			return err
-		}
-		req.Header.Set("Content-Type", "application/json")
+	foodServiceHost := os.Getenv("FOOD_SERVICE_HOST")
+	foodServicePort := os.Getenv("FOOD_SERVICE_PORT")
+	foodServiceEndpoint := fmt.Sprintf("http://%s:%s/therapy", foodServiceHost, foodServicePort)
 
-		// Šaljemo zahtev servisu ishrane
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			rr.logger.Println("Error sending request to food service:", err)
-			return err
-		}
-		defer resp.Body.Close()
+	req, err := http.NewRequest("POST", foodServiceEndpoint, bytes.NewBuffer(therapyJSON))
+	if err != nil {
+		rr.logger.Println("Error creating request to food service:", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
 
-		if resp.StatusCode != http.StatusOK {
-			rr.logger.Println("Food service returned non-OK status code:", resp.StatusCode)
-			return errors.New("food service returned non-OK status code")
-		}*/
+	// Šaljemo zahtev servisu ishrane
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		rr.logger.Println("Error sending request to food service:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		rr.logger.Println("Food service returned non-OK status code:", resp.StatusCode)
+		return errors.New("food service returned non-OK status code")
+	}
 
 	return nil
 }
