@@ -29,7 +29,7 @@ const (
 type Students []*Student
 
 type TherapyData struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ID        primitive.ObjectID `bson:"therapyId,omitempty" json:"therapyId,omitempty"`
 	StudentID primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
 	Diagnosis string             `bson:"diagnosis,omitempty" json:"diagnosis,omitempty"`
 	Status    Status             `bson:"status,omitempty" json:"status,omitempty"`

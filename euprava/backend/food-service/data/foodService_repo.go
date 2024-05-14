@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -140,6 +141,23 @@ func (rr *FoodServiceRepo) SaveTherapyData(therapyData *TherapyData) error {
 	therapiesList = append(therapiesList, therapyData)
 
 	return nil
+}
+
+func (rr *FoodServiceRepo) ClearTherapiesCache() error {
+	therapiesList = Therapies{}
+	return nil
+}
+
+func (rr *FoodServiceRepo) UpdateTherapyStatusInCache(therapyID primitive.ObjectID, status Status) error {
+
+	for _, therapy := range therapiesList {
+		if therapy.ID == therapyID {
+			therapy.Status = status
+			return nil
+		}
+	}
+
+	return fmt.Errorf("therapy with ID %s not found in cache", therapyID.Hex())
 }
 
 // GetAllTherapiesFromHealthCareService funkcija dobavlja sve terapije iz HealthCare servisa.

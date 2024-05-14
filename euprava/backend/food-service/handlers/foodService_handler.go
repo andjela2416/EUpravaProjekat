@@ -4,6 +4,7 @@ import (
 	"context"
 	"food-service/data"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
 )
@@ -108,6 +109,51 @@ func (h *FoodServiceHandler) SaveTherapy(rw http.ResponseWriter, r *http.Request
 		return
 	}
 	rw.WriteHeader(http.StatusOK)
+}
+
+func (h *FoodServiceHandler) ClearTherapiesList(rw http.ResponseWriter, r *http.Request) {
+	// Poziv funkcije za brisanje liste terapija iz repozitorijuma
+	err := h.foodServiceRepo.ClearTherapiesCache()
+	if err != nil {
+		h.logger.Print("Error clearing therapies list: ", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error clearing therapies list."))
+		return
+	}
+	// Odgovor sa statusom OK ako je brisanje uspeĹˇno
+	rw.WriteHeader(http.StatusOK)
+}
+
+func (h *FoodServiceHandler) UpdateTherapyStatus(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	therapyID := vars["id"]
+	status := r.FormValue("status")
+
+	switch status {
+	case data.Done, data.Undone:
+		objectID, err := primitive.ObjectIDFromHex(therapyID)
+		if err != nil {
+			h.logger.Printf("Invalid therapy ID provided: %v", err)
+			rw.WriteHeader(http.StatusBadRequest)
+			rw.Write([]byte("Invalid therapy ID provided."))
+			return
+		}
+
+		// Call repository to update therapy status in cache
+		err = h.foodServiceRepo.UpdateTherapyStatusInCache(objectID, data.Status(status))
+		if err != nil {
+			h.logger.Printf("Error updating therapy status: %v", err)
+			rw.WriteHeader(http.StatusBadRequest)
+			rw.Write([]byte("Error updating therapy status."))
+			return
+		}
+		// Respond with success status
+		rw.WriteHeader(http.StatusOK)
+	default:
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Invalid status provided."))
+		return
+	}
 }
 
 func (s *FoodServiceHandler) MiddlewareStudentDeserialization(next http.Handler) http.Handler {
