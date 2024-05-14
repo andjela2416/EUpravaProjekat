@@ -37,8 +37,8 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	logger := log.New(os.Stdout, "[res-api] ", log.LstdFlags)
-	storeLogger := log.New(os.Stdout, "[res-store] ", log.LstdFlags)
+	logger := log.New(os.Stdout, "[dorm-api] ", log.LstdFlags)
+	storeLogger := log.New(os.Stdout, "[dorm-store] ", log.LstdFlags)
 
 	store, err := data.NewDormRepo(timeoutContext, storeLogger)
 	if err != nil {
