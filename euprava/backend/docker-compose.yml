@@ -63,9 +63,6 @@ services:
     networks:
       - network
 
-
-
-
   healthcare_db:
     image: mongo
     container_name: healthcare_db

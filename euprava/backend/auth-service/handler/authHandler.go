@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	keycloakIssuer  = "https://your-keycloak-server/auth/realms/your-realm"
-	clientID        = "your-client-id"
-	clientSecret    = "your-client-secret"
+	keycloakIssuer  = "https://localhost:8080/auth/realms/test"
+	clientID        = "euprava"
+	clientSecret    = "dz0a1vY7Jqgbw59W0KiZs1rffuHB2a1t"
 	redirectURL     = "http://localhost:8080/callback"
-	allowedAudience = "your-client-id"
+	allowedAudience = "euprava"
 )
 
 func ServeLoginPage(c *gin.Context) {
