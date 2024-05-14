@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"backend/dorm-service/controllers"
+	"dorm-service/controllers"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MainRoutes(routes *gin.Engine, dormController controllers.DormController) {
+func MainRoutes(routes *gin.Engine, dc controllers.DormController) {
+	routes.POST("/applications/create:_id", dc.InsertApplication())
 }

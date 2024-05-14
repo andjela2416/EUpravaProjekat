@@ -1,8 +1,8 @@
 package main
 
 import (
-	"backend/dorm-service/data"
 	"context"
+	"dorm-service/data"
 	"log"
 	"net/http"
 	"os"
@@ -34,10 +34,19 @@ func main() {
 		ValidateHeaders: false,
 	}))
 
-	logger := log.New(os.Stdout, "[dorm-api] ", log.LstdFlags)
-	var err error
-	env := new(data.DormRepo)
-	env.DB, err = data.ConnectDB()
+	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	logger := log.New(os.Stdout, "[res-api] ", log.LstdFlags)
+	storeLogger := log.New(os.Stdout, "[res-store] ", log.LstdFlags)
+
+	store, err := data.NewDormRepo(timeoutContext, storeLogger)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer store.DisconnectMongo(timeoutContext)
+	store.Ping()
+
 	if err != nil {
 		log.Fatalf("failed to start the database server: %v", err)
 	}
