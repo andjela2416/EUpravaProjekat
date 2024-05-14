@@ -16,8 +16,37 @@ services:
       HEALTHCARE_DB_PORT: ${HEALTHCARE_DB_PORT}
       HEALTHCARE_SERVICE_PORT: ${HEALTHCARE_SERVICE_PORT}
       HEALTHCARE_SERVICE_HOST: ${HEALTHCARE_SERVICE_HOST}
+      FOOD_DB_HOST: ${FOOD_DB_HOST}
+      FOOD_DB_PORT: ${FOOD_DB_PORT}
+      FOOD_SERVICE_PORT: ${FOOD_SERVICE_PORT}
+      FOOD_SERVICE_HOST: ${FOOD_SERVICE_HOST}
     depends_on:
       - healthcare_db
+    networks:
+      - network
+    volumes:
+      - logs_volume:/logs
+
+  food_service:
+    image: food_service
+    container_name: food_service
+    build:
+      context: .
+      dockerfile: ./food-service/Dockerfile
+    restart: always
+    ports:
+      - ${FOOD_SERVICE_PORT}:${FOOD_SERVICE_PORT}
+    environment:
+      HEALTHCARE_DB_HOST: ${HEALTHCARE_DB_HOST}
+      HEALTHCARE_DB_PORT: ${HEALTHCARE_DB_PORT}
+      HEALTHCARE_SERVICE_PORT: ${HEALTHCARE_SERVICE_PORT}
+      HEALTHCARE_SERVICE_HOST: ${HEALTHCARE_SERVICE_HOST}
+      FOOD_DB_HOST: ${FOOD_DB_HOST}
+      FOOD_DB_PORT: ${FOOD_DB_PORT}
+      FOOD_SERVICE_PORT: ${FOOD_SERVICE_PORT}
+      FOOD_SERVICE_HOST: ${FOOD_SERVICE_HOST}
+    depends_on:
+      - food_db
     networks:
       - network
     volumes:
@@ -34,27 +63,16 @@ services:
     networks:
       - network
 
-  auth-service:
-    image: jboss/keycloak:latest
-    container_name: auth.service
-    build:
-      context: .
-    environment:
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin
-      - KEYCLOAK_CLIENT_ID=euprava
-      - KEYCLOAK_CLIENT_SECRET=dz0a1vY7Jqgbw59W0KiZs1rffuHB2a1t
-      - KEYCLOAK_REDIRECT_URL=http://localhost:8080/callback
-
-    volumes:
-      - ./.containers/keycloak:/opt/jboss/keycloak/standalone/data
-    ports:
-      - 18080:8080
-
-
   healthcare_db:
     image: mongo
     container_name: healthcare_db
+    restart: on-failure
+    networks:
+      - network
+
+  food_db:
+    image: mongo
+    container_name: food_db
     restart: on-failure
     networks:
       - network

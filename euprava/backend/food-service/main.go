@@ -47,6 +47,13 @@ func main() {
 	editFoodForStudent.HandleFunc("/studentsfood", foodServiceHandler.EditFoodForStudent)
 	editFoodForStudent.Use(foodServiceHandler.MiddlewareStudentDeserialization)
 
+	getTherapies := router.Methods(http.MethodGet).Subrouter()
+	getTherapies.HandleFunc("/therapies", foodServiceHandler.GetTherapies)
+
+	saveTherapy := router.Methods(http.MethodPost).Subrouter()
+	saveTherapy.HandleFunc("/therapy", foodServiceHandler.SaveTherapy)
+	saveTherapy.Use(foodServiceHandler.MiddlewareTherapyDeserialization)
+
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,
