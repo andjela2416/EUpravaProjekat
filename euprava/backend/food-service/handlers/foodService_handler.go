@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"food-service/data"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -120,14 +122,26 @@ func (h *FoodServiceHandler) ClearTherapiesList(rw http.ResponseWriter, r *http.
 		rw.Write([]byte("Error clearing therapies list."))
 		return
 	}
-	// Odgovor sa statusom OK ako je brisanje uspeĹˇno
+	// Odgovor sa statusom OK ako je brisanje uspeÄąË‡no
 	rw.WriteHeader(http.StatusOK)
 }
 
 func (h *FoodServiceHandler) UpdateTherapyStatus(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	therapyID := vars["id"]
-	status := r.FormValue("status")
+	//status := r.FormValue("status")
+
+	var requestBody map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(rw, "Invalid request body: unable to decode JSON", http.StatusBadRequest)
+	}
+
+	status, ok := requestBody["status"].(string)
+	if !ok {
+		log.Println("Status nije string")
+	}
+
+	fmt.Println("Received status:", status)
 
 	switch status {
 	case data.Done, data.Undone:
