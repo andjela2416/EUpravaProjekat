@@ -1,25 +1,38 @@
 package main
 
 import (
-	"log"
+	routes "backend/routes"
 	"os"
-
-	h "auth-service/handler"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/heroku/x/hmetrics/onload"
+	cors "github.com/itsjamie/gin-cors"
 )
 
 func main() {
-	router := gin.Default()
-
-	router.GET("/", h.ServeLoginPage)
-	router.GET("/login", h.RedirectToKeycloak)
-	router.GET("/callback", h.HandleKeycloakCallback)
-
 	port := os.Getenv("PORT")
+
 	if port == "" {
-		port = "18080"
+		port = "8080"
 	}
-	log.Printf("Server listening on port %s...", port)
-	log.Fatal(router.Run(":" + port))
+
+	router := gin.New()
+	router.Use(gin.Logger())
+
+	// CORS
+	router.Use(cors.Middleware(cors.Config{
+		Origins:         "http://localhost:3000, *",
+		Methods:         "GET, PUT, POST, DELETE, OPTIONS",
+		RequestHeaders:  "Origin, Authorization, Content-Type",
+		ExposedHeaders:  "",
+		MaxAge:          50 * time.Second,
+		Credentials:     true,
+		ValidateHeaders: false,
+	}))
+
+	routes.AuthRoutes(router)
+	routes.UserRoutes(router)
+
+	router.Run(":" + port)
 }

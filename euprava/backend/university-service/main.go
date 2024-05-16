@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
 
-	"backend/university-service/database"
+	"university-service/data"
 )
 
 func main() {
@@ -18,13 +19,18 @@ func main() {
 		port = "8001"
 	}
 
-	db, err := database.ConnectDB()
-	if err != nil {
-		panic("Failed to connect to the database")
-	}
-	defer db.Close()
-	fmt.Println("Connected to the database")
+	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
 
+	logger := log.New(os.Stdout, "[uni-api] ", log.LstdFlags)
+	storeLogger := log.New(os.Stdout, "[uni-store] ", log.LstdFlags)
+
+	store, err := data.NewUniRepo(timeoutContext, storeLogger)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer store.DisconnectMongo(timeoutContext)
+	store.Ping()
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(cors.Middleware(cors.Config{
