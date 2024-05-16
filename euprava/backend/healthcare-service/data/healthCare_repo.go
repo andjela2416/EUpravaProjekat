@@ -251,6 +251,41 @@ func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData)
 	return nil
 }
 
+func (rr *HealthCareRepo) UpdateTherapyFromFoodService(updatedTherapy *TherapyData) error {
+
+	var existingTherapy *TherapyData
+	for _, therapy := range rr.allTherapies {
+		if therapy.ID == updatedTherapy.ID {
+			existingTherapy = therapy
+			break
+		}
+	}
+
+	if existingTherapy == nil {
+		return fmt.Errorf("therapy with ID %s not found", updatedTherapy.ID)
+	}
+
+	existingTherapy.Status = updatedTherapy.Status
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	therapiesCollection := rr.getCollection("therapies")
+
+	filter := bson.M{"therapyId": updatedTherapy.ID}
+	update := bson.M{"$set": bson.M{
+		"status": existingTherapy.Status,
+	}}
+
+	_, err := therapiesCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		rr.logger.Println("Error updating therapy in database:", err)
+		return err
+	}
+
+	return nil
+}
+
 // Funkcija koja dobavlja terapije koje su završene sa servera za ishranu
 func (rr *HealthCareRepo) GetDoneTherapiesFromFoodService() (Therapies, error) {
 	// Konstruisanje URL endpointa za dobavljanje terapija koje su završene

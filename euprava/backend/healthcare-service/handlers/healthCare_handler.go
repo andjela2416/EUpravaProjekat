@@ -140,6 +140,19 @@ func (h *HealthCareHandler) SaveAndShareTherapyDataWithDietService(rw http.Respo
 	rw.WriteHeader(http.StatusOK)
 }
 
+func (h *HealthCareHandler) UpdateTherapyFromFoodService(rw http.ResponseWriter, r *http.Request) {
+	therapyData := r.Context().Value(KeyProduct{}).(*data.TherapyData)
+
+	err := h.healthCareRepo.UpdateTherapyFromFoodService(therapyData)
+	if err != nil {
+		h.logger.Println("Error updating therapy from food service:", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
 func (h *HealthCareHandler) GetDoneTherapiesFromFoodService(rw http.ResponseWriter, r *http.Request) {
 	doneTherapies, err := h.healthCareRepo.GetDoneTherapiesFromFoodService()
 	if err != nil {
