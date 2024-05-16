@@ -59,6 +59,10 @@ func main() {
 	saveTherapy.HandleFunc("/therapy", healthCareHandler.SaveAndShareTherapyDataWithDietService)
 	saveTherapy.Use(healthCareHandler.MiddlewareTherapyDeserialization)
 
+	updateTherapy := router.Methods(http.MethodPut).Subrouter()
+	updateTherapy.HandleFunc("/updateTherapy", healthCareHandler.UpdateTherapyFromFoodService)
+	updateTherapy.Use(healthCareHandler.MiddlewareTherapyDeserialization)
+
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,
