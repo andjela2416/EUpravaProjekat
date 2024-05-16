@@ -154,7 +154,7 @@ func (h *FoodServiceHandler) UpdateTherapyStatus(rw http.ResponseWriter, r *http
 		}
 
 		// Call repository to update therapy status in cache
-		err = h.foodServiceRepo.UpdateTherapyStatusInCache(objectID, data.Status(status))
+		err = h.foodServiceRepo.UpdateTherapyStatus(objectID, data.Status(status))
 		if err != nil {
 			h.logger.Printf("Error updating therapy status: %v", err)
 			rw.WriteHeader(http.StatusBadRequest)

@@ -1,8 +1,10 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,7 +25,7 @@ type FoodServiceRepo struct {
 }
 
 func NewFoodServiceRepo(ctx context.Context, logger *log.Logger) (*FoodServiceRepo, error) {
-	dburi := fmt.Sprintf("mongodb://%s:%s/", os.Getenv("FOODSERVICE_DB_HOST"), os.Getenv("FOODSERVICE_DB_PORT"))
+	dburi := fmt.Sprintf("mongodb://%s:%s/", os.Getenv("FOOD_DB_HOST"), os.Getenv("FOOD_DB_PORT"))
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(dburi))
 	if err != nil {
@@ -84,7 +86,7 @@ func (rr *FoodServiceRepo) GetAllFoodOfStudents() (*Students, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection()
+	studentsCollection := rr.getCollection("students")
 
 	var students Students
 	studentCursor, err := studentsCollection.Find(ctx, bson.M{})
@@ -104,7 +106,7 @@ func (rr *FoodServiceRepo) EditFoodForStudent(studentID string, newFood string) 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection()
+	studentsCollection := rr.getCollection("students")
 
 	filter := bson.M{"student_id": studentID}
 	update := bson.M{"$set": bson.M{"food": newFood}}
@@ -133,13 +135,42 @@ func GetCachedTherapies() Therapies {
 
 // funkcija dobavlja sve terapije iz Food servisa.
 func (rr *FoodServiceRepo) GetAllTherapiesFromFoodService() (Therapies, error) {
-	return GetCachedTherapies(), nil
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	therapiesCollection := rr.cli.Database("MongoDatabase").Collection("therapies")
+
+	var therapies Therapies
+	cursor, err := therapiesCollection.Find(ctx, bson.M{})
+	if err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &therapies); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+
+	return therapies, nil
 }
 
 func (rr *FoodServiceRepo) SaveTherapyData(therapyData *TherapyData) error {
 
 	therapiesList = append(therapiesList, therapyData)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	therapiesCollection := rr.getCollection("therapies")
+
+	// Insert therapy data into therapies collection
+	_, err := therapiesCollection.InsertOne(ctx, therapyData)
+	if err != nil {
+		rr.logger.Println(err)
+		return err
+	}
 	return nil
 }
 
@@ -148,16 +179,67 @@ func (rr *FoodServiceRepo) ClearTherapiesCache() error {
 	return nil
 }
 
-func (rr *FoodServiceRepo) UpdateTherapyStatusInCache(therapyID primitive.ObjectID, status Status) error {
+func (rr *FoodServiceRepo) UpdateTherapyStatus(therapyID primitive.ObjectID, status Status) error {
 
-	for _, therapy := range therapiesList {
-		if therapy.ID == therapyID {
-			therapy.Status = status
-			return nil
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	therapiesCollection := rr.getCollection("therapies")
+
+	filter := bson.M{"therapyId": therapyID}
+	update := bson.M{"$set": bson.M{"status": status}}
+	result, err := therapiesCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
 	}
 
-	return fmt.Errorf("therapy with ID %s not found in cache", therapyID.Hex())
+	if result.ModifiedCount == 0 {
+		return fmt.Errorf("therapy with ID %s not found in database", therapyID.Hex())
+	}
+
+	updatedTherapy := &TherapyData{
+		ID:     therapyID,
+		Status: status,
+	}
+	if err := rr.SendTherapyDataToHealthCareService(updatedTherapy); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rr *FoodServiceRepo) SendTherapyDataToHealthCareService(therapy *TherapyData) error {
+
+	therapyJSON, err := json.Marshal(therapy)
+	if err != nil {
+		rr.logger.Println("Error serializing therapy data:", err)
+		return err
+	}
+
+	healthCareHost := os.Getenv("HEALTHCARE_SERVICE_HOST")
+	healthCarePort := os.Getenv("HEALTHCARE_SERVICE_PORT")
+	healthCareEndpoint := fmt.Sprintf("http://%s:%s/updateTherapy", healthCareHost, healthCarePort)
+
+	req, err := http.NewRequest("PUT", healthCareEndpoint, bytes.NewBuffer(therapyJSON))
+	if err != nil {
+		rr.logger.Println("Error creating request to health care service:", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := rr.client.Do(req)
+	if err != nil {
+		rr.logger.Println("Error sending request to health care service:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		rr.logger.Println("Health care service returned non-OK status code:", resp.StatusCode)
+		return errors.New("health care service returned non-OK status code")
+	}
+
+	return nil
 }
 
 // GetAllTherapiesFromHealthCareService funkcija dobavlja sve terapije iz HealthCare servisa.
@@ -201,8 +283,6 @@ func (rr *FoodServiceRepo) GetAllTherapiesFromHealthCareService() (Therapies, er
 	return therapies, nil
 }
 
-func (rr *FoodServiceRepo) getCollection() *mongo.Collection {
-	appointmentDatabase := rr.cli.Database("MongoDatabase")
-	appointmentsCollection := appointmentDatabase.Collection("students")
-	return appointmentsCollection
+func (rr *FoodServiceRepo) getCollection(collectionName string) *mongo.Collection {
+	return rr.cli.Database("MongoDatabase").Collection(collectionName)
 }
