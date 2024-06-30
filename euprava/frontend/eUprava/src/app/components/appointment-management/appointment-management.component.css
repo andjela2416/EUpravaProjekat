@@ -1,0 +1,5 @@
+/* Primer CSS-a za stilizaciju */
+.toast-success {
+  background-color: #4caf50; /* boja pozadine za uspeh */
+  color: white; /* boja teksta */
+}

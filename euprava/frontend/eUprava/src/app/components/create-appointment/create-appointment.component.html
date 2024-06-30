@@ -1,0 +1,24 @@
+<form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="studentID">Student:</label>
+    <input type="text" id="studentID" formControlName="studentID">
+  </div>
+
+  <div>
+    <label for="date">Datum:</label>
+    <input type="date" id="date" formControlName="date">
+  </div>
+
+  <div>
+    <label for="doorNumber">Broj vrata:</label>
+    <input type="number" id="doorNumber" formControlName="doorNumber">
+  </div>
+
+  <div>
+    <label for="description">Opis:</label>
+    <textarea id="description" formControlName="description"></textarea>
+  </div>
+
+
+  <button type="submit">Kreiraj pregled</button>
+</form>

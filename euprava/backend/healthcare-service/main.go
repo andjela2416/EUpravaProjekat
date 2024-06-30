@@ -22,11 +22,9 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	// Inicijalizacija loggera koji će se koristiti, sa prefiksom i datumom za svaki log
 	logger := log.New(os.Stdout, "[res-api] ", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[res-store] ", log.LstdFlags)
 
-	// NoSQL: Inicijalizacija prodavnice proizvoda
 	store, err := data.NewHealthCareRepo(timeoutContext, storeLogger)
 	if err != nil {
 		logger.Fatal(err)
