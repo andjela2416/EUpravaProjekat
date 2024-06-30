@@ -3,6 +3,8 @@ package data
 import (
 	"encoding/json"
 	"io"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Student struct {
@@ -19,9 +21,19 @@ type StudyInfo struct {
 	Year          int     `json:"year"`
 }
 
+type User struct {
+	ID         primitive.ObjectID `bson:"_id"`
+	First_name *string            `json:"first_name" validate:"required,min=2,max=100"`
+	Last_name  *string            `json:"last_name" validate:"required,min=2,max=100"`
+	Email      *string            `json:"email" validate:"email,required"`
+	Password   *string            `json:"password" validate:"required,min=8"`
+	Phone      *string            `json:"phone" validate:"required"`
+	Address    *string            `json:"address" validate:"required"`
+}
+
 type Application struct {
-	Status  string   `json:"status"` //accepted / rejected / pending
-	Student *Student `json:"student"`
+	Status string `json:"status"` //accepted / rejected / pending
+	User   *User  `json:"user"`
 }
 type Selection struct {
 	StartDate string `json:"start_date"`

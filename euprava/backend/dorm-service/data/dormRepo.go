@@ -81,6 +81,7 @@ func (dr *DormRepo) Insertapplications(application *Application) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
+	application.Status = "Pending"
 	appsCollection := OpenCollection(dr.cli, "applications")
 	result, err := appsCollection.InsertOne(ctx, &application)
 	if err != nil {
@@ -91,23 +92,23 @@ func (dr *DormRepo) Insertapplications(application *Application) error {
 	return nil
 }
 
-func (dr *DormRepo) GetAllapplications() (*Rooms, error) {
+func (dr *DormRepo) GetAllapplications() (*Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	appsCollection := OpenCollection(dr.cli, "applications")
 
-	var rooms Rooms
+	var apps Application
 	roomCursor, err := appsCollection.Find(ctx, bson.M{})
 	if err != nil {
 		dr.logger.Println(err)
 		return nil, err
 	}
-	if err = roomCursor.All(ctx, &rooms); err != nil {
+	if err = roomCursor.All(ctx, &apps); err != nil {
 		dr.logger.Println(err)
 		return nil, err
 	}
-	return &rooms, nil
+	return &apps, nil
 }
 
 func (dr *DormRepo) getCollection() *mongo.Collection {

@@ -7,5 +7,7 @@ import (
 )
 
 func MainRoutes(routes *gin.Engine, dc controllers.DormController) {
-	routes.POST("/applications/create:_id", dc.InsertApplication())
+	routes.GET("/applications", dc.GetAllApplications())
+	routes.POST("/applications/create/:_id", dc.InsertApplication())
+
 }
