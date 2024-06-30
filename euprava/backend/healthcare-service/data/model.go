@@ -8,15 +8,16 @@ import (
 )
 
 type Student struct {
-	ID        primitive.ObjectID `bson:"_id" json:"id"`
-	Firstname string             `bson:"firstName,omitempty" json:"firstName,omitempty"`
-	Lastname  string             `bson:"lastName,omitempty" json:"lastName,omitempty"`
-	Gender    Gender             `bson:"gender,omitempty" json:"gender,omitempty"`
-	Age       int                `bson:"age,omitempty" json:"age,omitempty"`
-	Residence string             `bson:"residence,omitempty" json:"residence,omitempty"`
-	Email     string             `bson:"email" json:"email"`
-	Username  string             `bson:"username" json:"username"`
-	//UserType  UserType           `bson:"userType" json:"userType"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Firstname      string             `bson:"firstName,omitempty" json:"firstName,omitempty"`
+	Lastname       string             `bson:"lastName,omitempty" json:"lastName,omitempty"`
+	Gender         Gender             `bson:"gender,omitempty" json:"gender,omitempty"`
+	DateOfBirth    int                `bson:"date_of_birth,omitempty" json:"date_of_birth,omitempty"`
+	Residence      string             `bson:"residence,omitempty" json:"residence,omitempty"`
+	Email          string             `bson:"email,omitempty" json:"email,omitempty"`
+	Username       string             `bson:"username,omitempty" json:"username,omitempty"`
+	UserType       UserType           `bson:"userType,omitempty" json:"userType,omitempty"`
+	HealthRecordID primitive.ObjectID `bson:"healthRecordID,omitempty" json:"healthRecordID,omitempty"`
 }
 
 type Gender string
@@ -29,7 +30,7 @@ const (
 type Students []*Student
 
 type TherapyData struct {
-	ID        primitive.ObjectID `bson:"therapyId,omitempty" json:"therapyId,omitempty"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	StudentID primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
 	Diagnosis string             `bson:"diagnosis,omitempty" json:"diagnosis,omitempty"`
 	Status    Status             `bson:"status,omitempty" json:"status,omitempty"`
@@ -49,10 +50,15 @@ type Therapies []*TherapyData
 
 // predstavlja pregled pacijenta
 type AppointmentData struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	StudentID   primitive.ObjectID `bson:"student_id,omitempty" json:"student_id,omitempty"`
-	Date        time.Time          `bson:"date,omitempty" json:"date,omitempty"`
-	Description string             `bson:"description,omitempty" json:"description,omitempty"`
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	StudentID    primitive.ObjectID `bson:"student_id,omitempty" json:"student_id,omitempty"`
+	Date         time.Time          `bson:"date,omitempty" json:"date,omitempty"`
+	DoorNumber   int                `bson:"door_number,omitempty" json:"door_number,omitempty"`
+	Description  string             `bson:"description,omitempty" json:"description,omitempty"`
+	Systematic   bool               `bson:"systematic" json:"systematic"`
+	FacultyName  string             `bson:"faculty_name,omitempty" json:"faculty_name,omitempty"`
+	FieldOfStudy string             `bson:"field_of_study,omitempty" json:"field_of_study,omitempty"`
+	Reserved     bool               `bson:"reserved" json:"reserved"`
 }
 
 type Appointments []*AppointmentData
@@ -123,11 +129,39 @@ func (o *Therapies) FromJSON(r io.Reader) error {
 	return d.Decode(o)
 }
 
+type HealthRecord struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	StudentID  primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
+	RecordData string             `bson:"recordData,omitempty" json:"recordData,omitempty"`
+}
+
+type HealthRecords []*HealthRecord
+
+func (o *HealthRecord) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *HealthRecord) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
+func (o *HealthRecords) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *HealthRecords) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
 type UserType string
 
 const (
-	Guest = "Guest"
-	Host  = "Host"
+	STUDENT = "STUDENT"
+	DOCTOR  = "DOCTOR"
 )
 
 type UsernameChange struct {
