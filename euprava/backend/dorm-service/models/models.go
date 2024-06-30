@@ -38,8 +38,9 @@ type Selection struct {
 	EndDate   string `json:"end_date"`
 }
 type Building struct {
-	Address string `json:"address"`
-	Rooms   Rooms  `json:"rooms,omitempty"`
+	Id      primitive.ObjectID `bson:"_id"`
+	Address string             `json:"address"`
+	Rooms   Rooms              `json:"rooms,omitempty"`
 }
 type Room struct {
 	RoomNumber int       `json:"room_number"`

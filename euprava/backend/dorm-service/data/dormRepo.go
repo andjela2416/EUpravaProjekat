@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -124,10 +125,20 @@ func (dr *DormRepo) GetAllapplications() (*models.Application, error) {
 	return &apps, nil
 }
 
-func (dr *DormRepo) getCollection() *mongo.Collection {
-	appointmentDatabase := dr.cli.Database("MongoDatabase")
-	appointmentsCollection := appointmentDatabase.Collection("rooms")
-	return appointmentsCollection
+func (dr *DormRepo) InsertBuilding(building models.Building) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+	building.Id = primitive.NewObjectID()
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+	result, err := buildingCollection.InsertOne(ctx, &building)
+	if err != nil {
+		dr.logger.Println(err)
+		return err
+	}
+	dr.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	return nil
+
+}
 }
 
 func (dr *DormRepo) GetClient() *mongo.Client {
@@ -139,4 +150,30 @@ func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collecti
 	var collection *mongo.Collection = client.Database(os.Getenv("DORM_DB_HOST")).Collection(collectionName)
 
 	return collection
+}
+func (dr *DormRepo) GetBuilding(id string) (*models.Building, error) {
+
+	var building models.Building
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+
+	err := buildingCollection.FindOne(context.Background(), bson.M{"building.id": id}).Decode(&building)
+	if err != nil {
+		return nil, fmt.Errorf("No buildings found for id: %s", id)
+	}
+
+	return &building, nil
+}
+func (dr *DormRepo) DeleteBuilding(id string) error {
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+
+	result, err := buildingCollection.DeleteOne(context.TODO(), bson.M{"id": id})
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount != 1 {
+		return fmt.Errorf("building not found")
+	}
+
+	return nil
 }

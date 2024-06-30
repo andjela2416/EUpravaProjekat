@@ -54,15 +54,6 @@ func (dc *DormController) InsertApplication() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error: student id not found ": studentId})
 			return
 		}
-		utype, exists := c.Get("user_type")
-		if !exists {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user role not found in token"})
-			return
-		}
-		if utype != "STUDENT" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Only students can apply for a dorm"})
-			return
-		}
 		var application models.Application
 
 		student, err := dc.GetStudentByID(studentId)
@@ -121,3 +112,54 @@ func (dc *DormController) GetApplication() gin.HandlerFunc {
 //accept the first n number of them based on how many spaces there are
 //assign students to random non-full rooms
 //}
+
+func (dc *DormController) InsertBuilding() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var building models.Building
+		if err := c.BindJSON(&building); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "parsing failed"})
+			return
+		}
+		validationErr := validate.Struct(building)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+			return
+		}
+		err := dc.repo.InsertBuilding(building)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"Building created": building})
+
+	}
+}
+
+func (dc *DormController) GetBuilding() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		buildingId := c.Param("id")
+		building, err := dc.repo.GetBuilding(buildingId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		c.JSON(http.StatusOK, building)
+		return
+
+	}
+}
+
+func (dc *DormController) DeleteBuilding() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		buildingId := c.Param("id")
+		building, err := dc.repo.GetBuilding(buildingId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		c.JSON(http.StatusOK, building)
+		return
+
+	}
+}
