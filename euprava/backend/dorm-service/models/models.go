@@ -1,4 +1,4 @@
-package data
+package models
 
 import (
 	"encoding/json"
@@ -7,8 +7,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type User struct {
+	ID         primitive.ObjectID `bson:"_id"`
+	First_name *string            `json:"first_name" validate:"required,min=2,max=100"`
+	Last_name  *string            `json:"last_name" validate:"required,min=2,max=100"`
+	Email      *string            `json:"email" validate:"email,required"`
+	Password   *string            `json:"password" validate:"required,min=8"`
+	Phone      *string            `json:"phone" validate:"required"`
+	Address    *string            `json:"address" validate:"required"`
+}
 type Student struct {
-	StudentId   string     `json:"student_id"`
+	Uid         string     `json:"uid"`
 	FirstName   string     `json:"first_name"`
 	LastName    string     `json:"last_name"`
 	FinanceType string     `json:"finance_type"`
@@ -20,17 +29,6 @@ type StudyInfo struct {
 	ESBP          int     `json:"esbp"`
 	Year          int     `json:"year"`
 }
-
-type User struct {
-	ID         primitive.ObjectID `bson:"_id"`
-	First_name *string            `json:"first_name" validate:"required,min=2,max=100"`
-	Last_name  *string            `json:"last_name" validate:"required,min=2,max=100"`
-	Email      *string            `json:"email" validate:"email,required"`
-	Password   *string            `json:"password" validate:"required,min=8"`
-	Phone      *string            `json:"phone" validate:"required"`
-	Address    *string            `json:"address" validate:"required"`
-}
-
 type Application struct {
 	Status string `json:"status"` //accepted / rejected / pending
 	User   *User  `json:"user"`
@@ -39,15 +37,15 @@ type Selection struct {
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 }
-
+type Building struct {
+	Address string `json:"address"`
+	Rooms   Rooms  `json:"rooms,omitempty"`
+}
 type Room struct {
 	RoomNumber int       `json:"room_number"`
 	Capacity   int       `json:"capacity"`
 	Building   *Building `json:"building"`
-	Students   *Students `json:"students"`
-}
-type Building struct {
-	Street string `json:"street"`
+	Students   *Students `json:"students,omitempty"`
 }
 
 type Students []*Student

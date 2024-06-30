@@ -4,6 +4,7 @@ import (
 	"context"
 	controllers "dorm-service/controllers"
 	"dorm-service/data"
+	helper "dorm-service/helpers"
 	routes "dorm-service/routes"
 	"log"
 	"net/http"
@@ -45,6 +46,8 @@ func main() {
 	}
 	defer store.DisconnectMongo(timeoutContext)
 	store.Ping()
+
+	helper.InitializeTokenHelper(store.GetClient())
 
 	if err != nil {
 		log.Fatalf("failed to start the database server: %v", err)

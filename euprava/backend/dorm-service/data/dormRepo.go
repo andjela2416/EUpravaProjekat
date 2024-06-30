@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"dorm-service/models"
 	"fmt"
 	"log"
 	"net/http"
@@ -76,8 +77,20 @@ func (dr *DormRepo) Ping() {
 	}
 	fmt.Println(databases)
 }
+func (dr *DormRepo) GetApplication(studentid string) (*models.Application, error) {
 
-func (dr *DormRepo) Insertapplications(application *Application) error {
+	var app models.Application
+	appsCollection := OpenCollection(dr.cli, "applications")
+
+	err := appsCollection.FindOne(context.Background(), bson.M{"student.student_id": studentid}).Decode(&app)
+	if err != nil {
+		return nil, fmt.Errorf("No applications not found for student id: %s", studentid)
+	}
+
+	return &app, nil
+}
+
+func (dr *DormRepo) Insertapplications(application *models.Application) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
@@ -92,13 +105,13 @@ func (dr *DormRepo) Insertapplications(application *Application) error {
 	return nil
 }
 
-func (dr *DormRepo) GetAllapplications() (*Application, error) {
+func (dr *DormRepo) GetAllapplications() (*models.Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	appsCollection := OpenCollection(dr.cli, "applications")
 
-	var apps Application
+	var apps models.Application
 	roomCursor, err := appsCollection.Find(ctx, bson.M{})
 	if err != nil {
 		dr.logger.Println(err)
@@ -116,6 +129,11 @@ func (dr *DormRepo) getCollection() *mongo.Collection {
 	appointmentsCollection := appointmentDatabase.Collection("rooms")
 	return appointmentsCollection
 }
+
+func (dr *DormRepo) GetClient() *mongo.Client {
+	return dr.cli
+}
+
 func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 
 	var collection *mongo.Collection = client.Database(os.Getenv("DORM_DB_HOST")).Collection(collectionName)
