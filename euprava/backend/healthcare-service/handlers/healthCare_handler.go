@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"healthcare-service/data"
@@ -157,6 +158,8 @@ func (h *HealthCareHandler) DeleteStudent(rw http.ResponseWriter, r *http.Reques
 // CreateAppointment kreira novi pregled sa reserved postavljenim na false.
 func (h *HealthCareHandler) CreateAppointment(rw http.ResponseWriter, r *http.Request) {
 	appointmentData := r.Context().Value(KeyProduct{}).(*data.AppointmentData)
+
+	fmt.Printf("Received appointment: %+v\n", appointmentData)
 
 	err := h.healthCareRepo.CreateAppointment(appointmentData)
 	if err != nil {

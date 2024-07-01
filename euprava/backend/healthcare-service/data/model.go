@@ -53,11 +53,11 @@ type AppointmentData struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	StudentID    primitive.ObjectID `bson:"student_id,omitempty" json:"student_id,omitempty"`
 	Date         time.Time          `bson:"date,omitempty" json:"date,omitempty"`
-	DoorNumber   int                `bson:"door_number,omitempty" json:"door_number,omitempty"`
-	Description  string             `bson:"description,omitempty" json:"description,omitempty"`
+	DoorNumber   int                `bson:"door_number" json:"door_number"`
+	Description  string             `bson:"description" json:"description"`
 	Systematic   bool               `bson:"systematic" json:"systematic"`
-	FacultyName  string             `bson:"faculty_name,omitempty" json:"faculty_name,omitempty"`
-	FieldOfStudy string             `bson:"field_of_study,omitempty" json:"field_of_study,omitempty"`
+	FacultyName  string             `bson:"faculty_name" json:"faculty_name"`
+	FieldOfStudy string             `bson:"field_of_study" json:"field_of_study"`
 	Reserved     bool               `bson:"reserved" json:"reserved"`
 }
 

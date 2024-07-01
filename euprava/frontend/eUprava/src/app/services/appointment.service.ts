@@ -9,7 +9,7 @@ import { environment } from 'src/app/environments/environment';
 })
 export class AppointmentService {
 
-  private url = "examinations";
+  private url = "healthcare";
   constructor(private http: HttpClient) { }
 
   createAppointment(appointment: Appointment): Observable<any> {

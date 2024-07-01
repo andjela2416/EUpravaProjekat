@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CreateAppointmentComponent } from './components/create-appointment/create-appointment.component';
 import { AppointmentManagementComponent } from './components/appointment-management/appointment-management.component';
-import { ToastModule } from 'ngx-toast';
 
 @NgModule({
   declarations: [
@@ -16,7 +15,6 @@ import { ToastModule } from 'ngx-toast';
   ],
   imports: [
     BrowserModule,
-    ToastModule.forRoot(),
     HttpClientModule,
     AppRoutingModule,
     FormsModule,

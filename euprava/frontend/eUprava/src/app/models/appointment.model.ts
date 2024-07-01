@@ -1,7 +1,7 @@
 export interface Appointment {
     studentId: string;
-    date: Date[];
-    doorNumber: number,
-    description: string ,
-    systematic: boolean,
+    date: Date;
+    door_number: number;
+    description: string;
+    systematic: boolean;
   }
