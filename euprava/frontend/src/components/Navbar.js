@@ -2,16 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
-  const [registerDropdown, setRegisterDropdown] = useState(false);
   const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      if (registerDropdown && !e.target.closest(".register-dropdown")) {
-        setRegisterDropdown(false);
-      }
-     
-      setUserRole(localStorage.getItem("userrole"));
+      setUserRole(localStorage.getItem("user_type"));
     };
 
     document.body.addEventListener("click", handleOutsideClick);
@@ -19,15 +14,10 @@ const Navbar = () => {
     return () => {
       document.body.removeEventListener("click", handleOutsideClick);
     };
-  }, [registerDropdown]);
-
-  const toggleRegisterDropdown = () => {
-    setRegisterDropdown(!registerDropdown);
-  };
+  }, []);
 
   const handleLogout = () => {
-    localStorage.setItem("token", "");
-    localStorage.setItem("userrole", "");
+    localStorage.clear();
   };
 
   return (
@@ -46,34 +36,39 @@ const Navbar = () => {
                 Login
               </Link>
             </li>
-            {userRole === "ADMIN" ? (
+            <li className="nav-item">
+              <Link className="nav-link" to="/register/user">
+                Napravite nalog
+              </Link>
+            </li>
+            {userRole === "STUDENT" || userRole === "PROFESOR" || userRole === "ADMIN" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/register/university">
-                  university
+                <Link className="nav-link" to="/university">
+                  Fakultet
                 </Link>
               </li>
             ) : null}
-            {userRole === "ADMIN" ? (
+            {userRole === "STUDENT" || userRole === "DOKTOR" || userRole === "DEZURAN" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/register/dorm">
-                  Dorm
+                <Link className="nav-link" to="/health-care">
+                  Zdravstvo
                 </Link>
               </li>
             ) : null}
-            {userRole === "ADMIN" ? (
+            {userRole === "STUDENT" || userRole === "ADMIN" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/register/health-care">
-                  Health Care
+                <Link className="nav-link" to="/dorms">
+                  Domovi
                 </Link>
               </li>
             ) : null}
-            {userRole === "ADMIN" ? (
+              {userRole === "STUDENT" || userRole === "KUVAR" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/register/food">
-                  Food
+                <Link className="nav-link" to="/food">
+                  Menza
                 </Link>
               </li>
-            ) : null}          
+            ) : null}
             <li className="nav-item col-md-2">
               <button className="btn btn-dark nav-link" onClick={handleLogout}>
                 Logout
