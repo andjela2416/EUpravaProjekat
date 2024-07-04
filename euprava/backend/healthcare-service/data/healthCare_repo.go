@@ -83,14 +83,12 @@ func (rr *HealthCareRepo) Ping() {
 }
 
 // mongo
-func (rr *HealthCareRepo) InsertStudent(student *Student) error {
+func (rr *HealthCareRepo) InsertUser(user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
-	studentsCollection := rr.getCollection("students")
+	usersCollection := rr.getCollection("users")
 
-	student.UserType = "STUDENT"
-
-	result, err := studentsCollection.InsertOne(ctx, &student)
+	result, err := usersCollection.InsertOne(ctx, &user)
 	if err != nil {
 		rr.logger.Println(err)
 		return err
@@ -99,18 +97,18 @@ func (rr *HealthCareRepo) InsertStudent(student *Student) error {
 
 	// Kreiranje zdravstvenog kartona za studenta
 	healthRecord := &HealthRecord{
-		StudentID:  student.ID,
-		RecordData: "Initial health record for student " + student.Firstname + " " + student.Lastname,
+		UserID:     user.ID,
+		RecordData: "Initial health record for user " + user.Firstname + " " + user.Lastname,
 	}
 	err = rr.InsertHealthRecord(healthRecord)
 	if err != nil {
 		return err
 	}
 
-	student.HealthRecordID = healthRecord.ID
+	user.HealthRecordID = healthRecord.ID
 
 	// Ažuriranje informacija o studentu sa HealthRecordID
-	_, err = studentsCollection.UpdateOne(ctx, bson.M{"_id": student.ID}, bson.M{"$set": bson.M{"healthRecordID": student.HealthRecordID}})
+	_, err = usersCollection.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"healthRecordID": user.HealthRecordID}})
 	if err != nil {
 		rr.logger.Println(err)
 		return err
@@ -134,48 +132,48 @@ func (rr *HealthCareRepo) InsertHealthRecord(record *HealthRecord) error {
 	return nil
 }
 
-func (rr *HealthCareRepo) GetAllStudents() (*Students, error) {
+func (rr *HealthCareRepo) GetAllUsers() (*Users, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection("students")
+	usersCollection := rr.getCollection("users")
 
-	var students Students
-	studentCursor, err := studentsCollection.Find(ctx, bson.M{})
+	var users Users
+	userCursor, err := usersCollection.Find(ctx, bson.M{})
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
-	if err = studentCursor.All(ctx, &students); err != nil {
+	if err = userCursor.All(ctx, &users); err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
-	return &students, nil
+	return &users, nil
 }
 
 // GetStudentByID vraća studenta po ID-ju.
-func (rr *HealthCareRepo) GetStudentByID(studentID string) (*Student, error) {
+func (rr *HealthCareRepo) GetUserByID(userID string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection("students")
+	usersCollection := rr.getCollection("users")
 
 	// Konvertuj string ID u ObjectID
-	objID, err := primitive.ObjectIDFromHex(studentID)
+	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid student ID: %v", err)
+		return nil, fmt.Errorf("invalid user ID: %v", err)
 	}
 
-	var student Student
-	err = studentsCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&student)
+	var user User
+	err = usersCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("student not found")
+			return nil, fmt.Errorf("user not found")
 		}
 		return nil, err
 	}
 
-	return &student, nil
+	return &user, nil
 }
 
 func (rr *HealthCareRepo) GetHealthRecordByID(hRecordId string) (*HealthRecord, error) {
@@ -202,11 +200,11 @@ func (rr *HealthCareRepo) GetHealthRecordByID(hRecordId string) (*HealthRecord, 
 	return &healthRecord, nil
 }
 
-func (rr *HealthCareRepo) UpdateStudent(id string, student *Student) error {
+func (rr *HealthCareRepo) UpdateUser(id string, user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection("students")
+	usersCollection := rr.getCollection("users")
 
 	http.DefaultClient.Timeout = 60 * time.Second
 
@@ -220,41 +218,41 @@ func (rr *HealthCareRepo) UpdateStudent(id string, student *Student) error {
 	filter := bson.M{"_id": objectID}
 	update := bson.M{}
 
-	if student.Firstname != "" {
-		update["firstName"] = student.Firstname
+	if user.Firstname != "" {
+		update["firstName"] = user.Firstname
 	}
 
-	if student.Lastname != "" {
-		update["lastName"] = student.Lastname
+	if user.Lastname != "" {
+		update["lastName"] = user.Lastname
 	}
 
-	if student.Gender != "" {
-		update["gender"] = student.Gender
+	if user.Gender != "" {
+		update["gender"] = user.Gender
 	}
 
-	if student.DateOfBirth != 0 {
-		update["date_of_birth"] = student.DateOfBirth
+	if user.DateOfBirth != 0 {
+		update["date_of_birth"] = user.DateOfBirth
 	}
 
-	if student.Residence != "" {
-		update["residence"] = student.Residence
+	if user.Residence != "" {
+		update["residence"] = user.Residence
 	}
 
-	if student.Email != "" {
-		update["email"] = student.Email
+	if user.Email != "" {
+		update["email"] = user.Email
 	}
 
-	if student.Username != "" {
-		update["userName"] = student.Username
+	if user.Username != "" {
+		update["userName"] = user.Username
 	}
 
-	if student.UserType != "" {
-		update["userType"] = student.UserType
+	if user.UserType != "" {
+		update["userType"] = user.UserType
 	}
 
 	updateQuery := bson.M{"$set": update}
 
-	result, err := studentsCollection.UpdateOne(ctx, filter, updateQuery)
+	result, err := usersCollection.UpdateOne(ctx, filter, updateQuery)
 
 	rr.logger.Printf("Documents matched: %v\n", result.MatchedCount)
 	rr.logger.Printf("Documents updated: %v\n", result.ModifiedCount)
@@ -304,28 +302,28 @@ func (rr *HealthCareRepo) UpdateHealthRecord(id string, hRecord *HealthRecord) e
 }
 
 // DeleteStudent briše studenta iz baze podataka.
-func (rr *HealthCareRepo) DeleteStudent(studentID string) error {
+func (rr *HealthCareRepo) DeleteUser(userID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	studentsCollection := rr.getCollection("students")
+	usersCollection := rr.getCollection("users")
 
 	// Konvertuj string ID u ObjectID
-	objID, err := primitive.ObjectIDFromHex(studentID)
+	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return fmt.Errorf("invalid student ID: %v", err)
+		return fmt.Errorf("invalid user ID: %v", err)
 	}
 
 	// Kreiraj filter za pretragu studenta po ID-ju
 	filter := bson.M{"_id": objID}
 
-	_, err = studentsCollection.DeleteOne(ctx, filter)
+	_, err = usersCollection.DeleteOne(ctx, filter)
 	if err != nil {
-		rr.logger.Println("Error deleting student:", err)
+		rr.logger.Println("Error deleting user:", err)
 		return err
 	}
 
-	rr.logger.Printf("Deleted student with ID: %v\n", objID)
+	rr.logger.Printf("Deleted user with ID: %v\n", objID)
 	return nil
 }
 
@@ -335,8 +333,6 @@ func (rr *HealthCareRepo) CreateAppointment(appointmentData *AppointmentData) er
 	defer cancel()
 
 	examinationsCollection := rr.getCollection("examinations")
-
-	appointmentData.Reserved = false
 
 	_, err := examinationsCollection.InsertOne(ctx, appointmentData)
 	if err != nil {
@@ -549,12 +545,12 @@ func (rr *HealthCareRepo) GetAllAppointments() (*Appointments, error) {
 	defer cursor.Close(ctx)
 
 	var appointments Appointments
-	studentCursor, err := examinationsCollection.Find(ctx, bson.M{})
+	userCursor, err := examinationsCollection.Find(ctx, bson.M{})
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
-	if err = studentCursor.All(ctx, &appointments); err != nil {
+	if err = userCursor.All(ctx, &appointments); err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}

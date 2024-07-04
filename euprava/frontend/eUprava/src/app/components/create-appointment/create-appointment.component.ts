@@ -17,8 +17,7 @@ export class CreateAppointmentComponent implements OnInit {
       date: ['', Validators.required],
       time: ['', Validators.required], // Dodato polje za vreme
       doorNumber: ['', Validators.required],
-      description: [''],
-      systematic: [false],
+      description: ['']
     });
   }
 
@@ -33,11 +32,14 @@ export class CreateAppointmentComponent implements OnInit {
 
       // Kreiramo objekat za slanje na backend
       const appointmentData: Appointment = {
-        studentId: this.appointmentForm.value.studentID,
+        studentId: '',
         date: dateObj,
         door_number: this.appointmentForm.value.doorNumber,
         description: this.appointmentForm.value.description,
-        systematic: this.appointmentForm.value.systematic,
+        systematic: false,
+        reserved:false,
+        faculty_name:'',
+        field_of_study:''
       };
       console.log(appointmentData);
 

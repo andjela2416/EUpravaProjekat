@@ -39,11 +39,11 @@ func main() {
 	router.Use(MiddlewareContentTypeSet)
 
 	getStudents := router.Methods(http.MethodGet).Subrouter()
-	getStudents.HandleFunc("/students", healthCareHandler.GetAllStudents)
+	getStudents.HandleFunc("/students", healthCareHandler.GetAllUsers)
 
 	insertStudent := router.Methods(http.MethodPost).Subrouter()
-	insertStudent.HandleFunc("/students", healthCareHandler.InsertStudent)
-	insertStudent.Use(healthCareHandler.MiddlewareStudentDeserialization)
+	insertStudent.HandleFunc("/students", healthCareHandler.InsertUser)
+	insertStudent.Use(healthCareHandler.MiddlewareUserDeserialization)
 
 	router.HandleFunc("/appointments", healthCareHandler.GetAllAppointments).Methods(http.MethodGet)
 	router.HandleFunc("/therapies", healthCareHandler.GetAllTherapies).Methods(http.MethodGet)
@@ -85,13 +85,13 @@ func main() {
 
 	router.HandleFunc("/appointments/cancel", healthCareHandler.CancelAppointment).Methods("POST")
 
-	router.HandleFunc("/student", healthCareHandler.GetStudentByID).Methods(http.MethodGet)
+	router.HandleFunc("/student", healthCareHandler.GetUserByID).Methods(http.MethodGet)
 
 	updateStudent := router.Methods(http.MethodPut).Subrouter()
-	updateStudent.HandleFunc("/student/update/{id}", healthCareHandler.UpdateStudent)
-	updateStudent.Use(healthCareHandler.MiddlewareStudentDeserialization)
+	updateStudent.HandleFunc("/student/update/{id}", healthCareHandler.UpdateUser)
+	updateStudent.Use(healthCareHandler.MiddlewareUserDeserialization)
 
-	router.HandleFunc("/student/delete", healthCareHandler.DeleteStudent).Methods(http.MethodDelete)
+	router.HandleFunc("/student/delete", healthCareHandler.DeleteUser).Methods(http.MethodDelete)
 
 	updateHealthRecord := router.Methods(http.MethodPut).Subrouter()
 	updateHealthRecord.HandleFunc("/healthrecords/{id}", healthCareHandler.UpdateHealthRecord)

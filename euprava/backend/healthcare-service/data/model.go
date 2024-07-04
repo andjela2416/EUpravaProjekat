@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Student struct {
+type User struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Firstname      string             `bson:"firstName,omitempty" json:"firstName,omitempty"`
 	Lastname       string             `bson:"lastName,omitempty" json:"lastName,omitempty"`
@@ -27,7 +27,7 @@ const (
 	Female = "Female"
 )
 
-type Students []*Student
+type Users []*User
 
 type TherapyData struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
@@ -51,6 +51,7 @@ type Therapies []*TherapyData
 // predstavlja pregled pacijenta
 type AppointmentData struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	DoctorID     primitive.ObjectID `bson:"doctor_id" json:"doctor_id"`
 	StudentID    primitive.ObjectID `bson:"student_id,omitempty" json:"student_id,omitempty"`
 	Date         time.Time          `bson:"date,omitempty" json:"date,omitempty"`
 	DoorNumber   int                `bson:"door_number" json:"door_number"`
@@ -69,22 +70,22 @@ type Medication struct {
 	Frequency string `bson:"frequency,omitempty" json:"frequency,omitempty"`
 }
 
-func (o *Students) ToJSON(w io.Writer) error {
+func (o *Users) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(o)
 }
 
-func (o *Students) FromJSON(r io.Reader) error {
+func (o *Users) FromJSON(r io.Reader) error {
 	d := json.NewDecoder(r)
 	return d.Decode(o)
 }
 
-func (o *Student) ToJSON(w io.Writer) error {
+func (o *User) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(o)
 }
 
-func (o *Student) FromJSON(r io.Reader) error {
+func (o *User) FromJSON(r io.Reader) error {
 	d := json.NewDecoder(r)
 	return d.Decode(o)
 }
@@ -131,7 +132,7 @@ func (o *Therapies) FromJSON(r io.Reader) error {
 
 type HealthRecord struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	StudentID  primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
+	UserID     primitive.ObjectID `bson:"userId,omitempty" json:"userId,omitempty"`
 	RecordData string             `bson:"recordData,omitempty" json:"recordData,omitempty"`
 }
 

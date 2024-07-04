@@ -13,4 +13,8 @@ export class AppointmentManagementComponent {
   createAppointment() {
     this.router.navigate(['/create-appointment']);
   }
+
+  createSystematicCheck() {
+    this.router.navigate(['/create-systematicCheck']);
+  }
 }

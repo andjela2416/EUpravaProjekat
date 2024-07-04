@@ -23,13 +23,13 @@ func NewHealthCareHandler(l *log.Logger, r *data.HealthCareRepo) *HealthCareHand
 }
 
 // mongo
-func (r *HealthCareHandler) InsertStudent(rw http.ResponseWriter, h *http.Request) {
-	student := h.Context().Value(KeyProduct{}).(*data.Student)
-	err := r.healthCareRepo.InsertStudent(student)
+func (r *HealthCareHandler) InsertUser(rw http.ResponseWriter, h *http.Request) {
+	user := h.Context().Value(KeyProduct{}).(*data.User)
+	err := r.healthCareRepo.InsertUser(user)
 	if err != nil {
 		r.logger.Print("Database exception: ", err)
 		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("Error creating student."))
+		rw.Write([]byte("Error creating user."))
 	}
 	rw.WriteHeader(http.StatusOK)
 }
@@ -50,17 +50,17 @@ func (h *HealthCareHandler) UpdateHealthRecord(rw http.ResponseWriter, r *http.R
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (r *HealthCareHandler) GetAllStudents(rw http.ResponseWriter, h *http.Request) {
-	students, err := r.healthCareRepo.GetAllStudents()
+func (r *HealthCareHandler) GetAllUsers(rw http.ResponseWriter, h *http.Request) {
+	users, err := r.healthCareRepo.GetAllUsers()
 	if err != nil {
 		r.logger.Print("Database exception")
 	}
 
-	if students == nil {
+	if users == nil {
 		return
 	}
 
-	err = students.ToJSON(rw)
+	err = users.ToJSON(rw)
 	if err != nil {
 		http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
 		r.logger.Fatal("Unable to convert to json")
@@ -69,28 +69,28 @@ func (r *HealthCareHandler) GetAllStudents(rw http.ResponseWriter, h *http.Reque
 }
 
 // GetStudentByID vraća podatke o studentu po njegovom ID-ju.
-func (h *HealthCareHandler) GetStudentByID(rw http.ResponseWriter, r *http.Request) {
-	studentID := r.URL.Query().Get("id")
-	if studentID == "" {
-		http.Error(rw, "Missing student ID", http.StatusBadRequest)
+func (h *HealthCareHandler) GetUserByID(rw http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(rw, "Missing User ID", http.StatusBadRequest)
 		return
 	}
 
-	student, err := h.healthCareRepo.GetStudentByID(studentID)
+	user, err := h.healthCareRepo.GetUserByID(userID)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
-		http.Error(rw, "Error retrieving student.", http.StatusInternalServerError)
+		http.Error(rw, "Error retrieving user.", http.StatusInternalServerError)
 		return
 	}
 
-	if student == nil {
-		http.Error(rw, "Student not found.", http.StatusNotFound)
+	if user == nil {
+		http.Error(rw, "user not found.", http.StatusNotFound)
 		return
 	}
 
-	err = student.ToJSON(rw)
+	err = user.ToJSON(rw)
 	if err != nil {
-		http.Error(rw, "Error encoding student data.", http.StatusInternalServerError)
+		http.Error(rw, "Error encoding user data.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -122,15 +122,15 @@ func (h *HealthCareHandler) GetHealthRecordByID(rw http.ResponseWriter, r *http.
 }
 
 // UpdateStudent ažurira podatke o studentu.
-func (r *HealthCareHandler) UpdateStudent(rw http.ResponseWriter, h *http.Request) {
+func (r *HealthCareHandler) UpdateUser(rw http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
 
-	student := h.Context().Value(KeyProduct{}).(*data.Student)
+	user := h.Context().Value(KeyProduct{}).(*data.User)
 
-	err := r.healthCareRepo.UpdateStudent(id, student)
+	err := r.healthCareRepo.UpdateUser(id, user)
 	if err != nil {
-		http.Error(rw, "Error updating student", http.StatusInternalServerError)
+		http.Error(rw, "Error updating user", http.StatusInternalServerError)
 		return
 	}
 
@@ -138,18 +138,18 @@ func (r *HealthCareHandler) UpdateStudent(rw http.ResponseWriter, h *http.Reques
 }
 
 // DeleteStudent briše studenta iz baze podataka.
-func (h *HealthCareHandler) DeleteStudent(rw http.ResponseWriter, r *http.Request) {
-	studentID := r.URL.Query().Get("id")
-	if studentID == "" {
-		http.Error(rw, "Missing student ID", http.StatusBadRequest)
+func (h *HealthCareHandler) DeleteUser(rw http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(rw, "Missing user ID", http.StatusBadRequest)
 		return
 	}
 
-	err := h.healthCareRepo.DeleteStudent(studentID)
+	err := h.healthCareRepo.DeleteUser(userID)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("Error deleting student."))
+		rw.Write([]byte("Error deleting user."))
 		return
 	}
 	rw.WriteHeader(http.StatusOK)
@@ -494,16 +494,16 @@ func (h *HealthCareHandler) GetDoneTherapiesFromFoodService(rw http.ResponseWrit
 	}
 }
 
-func (s *HealthCareHandler) MiddlewareStudentDeserialization(next http.Handler) http.Handler {
+func (s *HealthCareHandler) MiddlewareUserDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		students := &data.Student{}
-		err := students.FromJSON(h.Body)
+		users := &data.User{}
+		err := users.FromJSON(h.Body)
 		if err != nil {
 			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
 			s.logger.Fatal(err)
 			return
 		}
-		ctx := context.WithValue(h.Context(), KeyProduct{}, students)
+		ctx := context.WithValue(h.Context(), KeyProduct{}, users)
 		h = h.WithContext(ctx)
 		next.ServeHTTP(rw, h)
 	})
@@ -511,14 +511,14 @@ func (s *HealthCareHandler) MiddlewareStudentDeserialization(next http.Handler) 
 
 func (s *HealthCareHandler) MiddlewareAppointmentDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		students := &data.AppointmentData{}
-		err := students.FromJSON(h.Body)
+		appointments := &data.AppointmentData{}
+		err := appointments.FromJSON(h.Body)
 		if err != nil {
 			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
 			s.logger.Fatal(err)
 			return
 		}
-		ctx := context.WithValue(h.Context(), KeyProduct{}, students)
+		ctx := context.WithValue(h.Context(), KeyProduct{}, appointments)
 		h = h.WithContext(ctx)
 		next.ServeHTTP(rw, h)
 	})
@@ -526,14 +526,14 @@ func (s *HealthCareHandler) MiddlewareAppointmentDeserialization(next http.Handl
 
 func (s *HealthCareHandler) MiddlewareTherapyDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		students := &data.TherapyData{}
-		err := students.FromJSON(h.Body)
+		therapies := &data.TherapyData{}
+		err := therapies.FromJSON(h.Body)
 		if err != nil {
 			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
 			s.logger.Fatal(err)
 			return
 		}
-		ctx := context.WithValue(h.Context(), KeyProduct{}, students)
+		ctx := context.WithValue(h.Context(), KeyProduct{}, therapies)
 		h = h.WithContext(ctx)
 		next.ServeHTTP(rw, h)
 	})
@@ -541,14 +541,14 @@ func (s *HealthCareHandler) MiddlewareTherapyDeserialization(next http.Handler) 
 
 func (s *HealthCareHandler) MiddlewareHealthRecordDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		students := &data.HealthRecord{}
-		err := students.FromJSON(h.Body)
+		healthRecords := &data.HealthRecord{}
+		err := healthRecords.FromJSON(h.Body)
 		if err != nil {
 			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
 			s.logger.Fatal(err)
 			return
 		}
-		ctx := context.WithValue(h.Context(), KeyProduct{}, students)
+		ctx := context.WithValue(h.Context(), KeyProduct{}, healthRecords)
 		h = h.WithContext(ctx)
 		next.ServeHTTP(rw, h)
 	})
