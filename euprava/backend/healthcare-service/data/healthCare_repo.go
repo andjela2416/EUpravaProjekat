@@ -339,6 +339,14 @@ func (rr *HealthCareRepo) CreateAppointment(appointmentData *AppointmentData) er
 		return err
 	}
 
+	if appointmentData.Systematic == true {
+		log.Printf("Sending systematic data to university service: %v", appointmentData)
+		if err := rr.SendSystematicDataToUniversityService(appointmentData); err != nil {
+			log.Printf("Failed to send data to university service: %v", err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -806,6 +814,44 @@ func (rr *HealthCareRepo) GetDoneTherapiesFromFoodService() (Therapies, error) {
 	}
 
 	return therapies, nil
+}
+
+func (rr *HealthCareRepo) SendSystematicDataToUniversityService(appointment *AppointmentData) error {
+
+	appointmentJSON, err := json.Marshal(appointment)
+	if err != nil {
+		rr.logger.Println("Error serializing appointment data:", err)
+		return err
+	}
+
+	universityServiceHost := os.Getenv("UNIVERSITY_SERVICE_HOST")
+	universityServicePort := os.Getenv("UNIVERSITY_SERVICE_PORT")
+	universityServiceEndpoint := fmt.Sprintf("http://%s:%s/notificationsByHealthcare", universityServiceHost, universityServicePort)
+
+	println(universityServiceEndpoint)
+
+	req, err := http.NewRequest("POST", universityServiceEndpoint, bytes.NewBuffer(appointmentJSON))
+	if err != nil {
+		rr.logger.Println("Error creating request to university service:", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Šaljemo zahtev servisu ishrane
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		rr.logger.Println("Error sending request to university service:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		rr.logger.Println("University service returned non-OK status code:", resp.StatusCode)
+		return errors.New("University service returned non-OK status code")
+	}
+
+	return nil
 }
 
 func (rr *HealthCareRepo) getCollection(collectionName string) *mongo.Collection {
