@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"encoding/json"
+	"time"
 
 	"io"
 
@@ -28,6 +29,13 @@ type StudyInfo struct {
 	Year          int     `bson:"year,omitempty" json:"year,omitempty"`
 }
 
+type Notification struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Title     string             `bson:"title" json:"title" validate:"required"`
+	Content   string             `bson:"content" json:"content"`
+	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+}
+
 type Gender string
 
 const (
@@ -36,6 +44,23 @@ const (
 )
 
 type Students []*Student
+
+type Notifications []*Notification
+
+func (n *Notifications) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(n)
+}
+
+func (n *Notification) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(n)
+}
+
+func (n *Notification) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(n)
+}
 
 func (s *Students) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)

@@ -22,7 +22,7 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	// Inicijalizacija loggera koji će se koristiti, sa prefiksom i datumom za svaki log
+	// Inicijalizacija loggera koji Ä‡e se koristiti, sa prefiksom i datumom za svaki log
 	logger := log.New(os.Stdout, "[res-api] ", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[res-store] ", log.LstdFlags)
 
@@ -53,6 +53,12 @@ func main() {
 	saveTherapy := router.Methods(http.MethodPost).Subrouter()
 	saveTherapy.HandleFunc("/therapy", foodServiceHandler.SaveTherapy)
 	saveTherapy.Use(foodServiceHandler.MiddlewareTherapyDeserialization)
+
+	clearAllTherapy := router.Methods(http.MethodDelete).Subrouter()
+	clearAllTherapy.HandleFunc("/therapy", foodServiceHandler.ClearTherapiesList)
+
+	updateTherapyStatus := router.Methods(http.MethodPut).Subrouter()
+	updateTherapyStatus.HandleFunc("/therapy/{id}", foodServiceHandler.UpdateTherapyStatus)
 
 	// Inicijalizacija HTTP servera
 	server := http.Server{

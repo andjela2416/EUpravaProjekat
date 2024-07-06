@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -70,6 +71,69 @@ func GetstudentByID(client *mongo.Client, userID string) (*Student, error) {
 	}
 
 	return &student, nil
+}
+
+func CreateNotification(client *mongo.Client, notification *Notification) error {
+	collection := client.Database("universityDB").Collection("notifications")
+	notification.ID = primitive.NewObjectID()
+	notification.CreatedAt = time.Now()
+	_, err := collection.InsertOne(context.Background(), notification)
+	return err
+}
+
+func GetNotificationByID(client *mongo.Client, id string) (*Notification, error) {
+	collection := client.Database("universityDB").Collection("notifications")
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var notification Notification
+	err = collection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&notification)
+	if err != nil {
+		return nil, err
+	}
+	return &notification, nil
+}
+
+func GetAllNotifications(client *mongo.Client) (Notifications, error) {
+	collection := client.Database("universityDB").Collection("notifications")
+
+	cur, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+
+	var notifications Notifications
+	for cur.Next(context.Background()) {
+		var notification Notification
+		err := cur.Decode(&notification)
+		if err != nil {
+			return nil, err
+		}
+		notifications = append(notifications, &notification)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return notifications, nil
+}
+
+func DeleteNotification(client *mongo.Client, id string) error {
+	collection := client.Database("universityDB").Collection("notifications")
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objectID})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (ar *StudentRepo) getCollection() *mongo.Collection {
