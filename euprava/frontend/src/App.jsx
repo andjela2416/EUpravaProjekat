@@ -8,7 +8,7 @@ import University from './pages/University';
 import Dorms from './pages/Dorms';
 import HealthCare from './pages/HealthCare';
 import Food from './pages/Food';
-
+import NotificationsForm from './pages/Notifications'
 function App() {
   return (
     <div>
@@ -21,6 +21,7 @@ function App() {
         <Route path="/dorms" element={<Dorms />} />
         <Route path="/health-care" element={<HealthCare />} />
         <Route path="/food" element={<Food />} />
+        <Route path="/notifications" element={<NotificationsForm />} />
       </Routes>
     </div>
   );
