@@ -14,7 +14,19 @@ export class AppointmentManagementComponent {
     this.router.navigate(['/create-appointment']);
   }
 
+  deleteAppointment() {
+    this.router.navigate(['/appointment-list']);
+  }
+
+  updateAppointment() {
+    this.router.navigate(['/update-appointment-list']);
+  }
+
   createSystematicCheck() {
     this.router.navigate(['/create-systematicCheck']);
+  }
+
+  createTherapy() {
+    this.router.navigate(['/create-therapy']);
   }
 }

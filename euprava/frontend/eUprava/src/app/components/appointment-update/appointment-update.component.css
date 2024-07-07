@@ -1,0 +1,70 @@
+.appointment-update-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-update-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.appointment-update-container form {
+  display: grid;
+  gap: 15px;
+}
+
+.appointment-update-container form div {
+  display: grid;
+  gap: 10px;
+  align-items: center; /* Centriranje elemenata vertikalno */
+}
+
+.appointment-update-container form label {
+  text-align: right;
+}
+
+.appointment-update-container form input,
+.appointment-update-container form textarea {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.appointment-update-container form .checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.appointment-update-container form button {
+  padding: 12px 24px;
+  background-color: blue;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.appointment-update-container form button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+.appointment-update-container form button:hover:not(:disabled) {
+  background-color: #1e88e5; /* Tamnija nijansa plave boje na hoveru */
+}
+.appointment-update-container form .label-right {
+  text-align: right;
+}
+
+.appointment-update-container form .align-right {
+  justify-self: end;
+}

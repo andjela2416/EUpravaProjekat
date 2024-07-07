@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AppointmentService } from 'src/app/services/appointment.service';
 import { Appointment } from 'src/app/models/appointment.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-appointment',
@@ -11,7 +12,7 @@ import { Appointment } from 'src/app/models/appointment.model';
 export class CreateAppointmentComponent implements OnInit {
   appointmentForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private appointmentService: AppointmentService) {
+  constructor(private fb: FormBuilder, private appointmentService: AppointmentService,private router: Router) {
     this.appointmentForm = this.fb.group({
       studentID: [''],
       date: ['', Validators.required],
@@ -47,7 +48,7 @@ export class CreateAppointmentComponent implements OnInit {
         .subscribe(
           response => {
             console.log('Appointment created successfully:', response);
-            // Implement logic for success handling (e.g., redirect, show success message)
+            this.router.navigate(['/appointment-management']);
           },
           error => {
             console.error('Error creating appointment:', error);

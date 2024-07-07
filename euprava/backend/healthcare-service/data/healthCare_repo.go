@@ -88,6 +88,19 @@ func (rr *HealthCareRepo) InsertUser(user *User) error {
 	defer cancel()
 	usersCollection := rr.getCollection("users")
 
+	// Kreiranje zdravstvenog kartona za studenta
+	healthRecord := &HealthRecord{
+		UserID:     user.ID,
+		RecordData: "Initial health record for user " + user.Firstname + " " + user.Lastname,
+	}
+
+	insertedID, err := rr.InsertHealthRecord(healthRecord)
+	if err != nil {
+		return err
+	}
+
+	// Set the HealthRecordID in the user
+	user.HealthRecordID = insertedID
 	result, err := usersCollection.InsertOne(ctx, &user)
 	if err != nil {
 		rr.logger.Println(err)
@@ -95,41 +108,22 @@ func (rr *HealthCareRepo) InsertUser(user *User) error {
 	}
 	rr.logger.Printf("Documents ID: %v\n", result.InsertedID)
 
-	// Kreiranje zdravstvenog kartona za studenta
-	healthRecord := &HealthRecord{
-		UserID:     user.ID,
-		RecordData: "Initial health record for user " + user.Firstname + " " + user.Lastname,
-	}
-	err = rr.InsertHealthRecord(healthRecord)
-	if err != nil {
-		return err
-	}
-
-	user.HealthRecordID = healthRecord.ID
-
-	// Ažuriranje informacija o studentu sa HealthRecordID
-	_, err = usersCollection.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"healthRecordID": user.HealthRecordID}})
-	if err != nil {
-		rr.logger.Println(err)
-		return err
-	}
-
 	return nil
 }
 
 // mongo
-func (rr *HealthCareRepo) InsertHealthRecord(record *HealthRecord) error {
+func (rr *HealthCareRepo) InsertHealthRecord(record *HealthRecord) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	recordsCollection := rr.getCollection("health_records")
 
-	result, err := recordsCollection.InsertOne(ctx, &record)
+	result, err := recordsCollection.InsertOne(ctx, record)
 	if err != nil {
 		rr.logger.Println(err)
-		return err
+		return primitive.NilObjectID, err
 	}
 	rr.logger.Printf("Health record ID: %v\n", result.InsertedID)
-	return nil
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func (rr *HealthCareRepo) GetAllUsers() (*Users, error) {
@@ -350,6 +344,35 @@ func (rr *HealthCareRepo) CreateAppointment(appointmentData *AppointmentData) er
 	return nil
 }
 
+// GetAllReservedAppointmentsForUser vraća sve rezervisane termine pregleda za određenog korisnika.
+func (rr *HealthCareRepo) GetAllReservedAppointmentsForUser(userID string) (*Appointments, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	examinationsCollection := rr.getCollection("examinations")
+
+	// Konvertuj string ID u ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %v", err)
+	}
+
+	// Pronađi sve rezervisane termine pregleda za datog korisnika
+	cursor, err := examinationsCollection.Find(ctx, bson.M{"userID": objID, "reserved": true})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var appointments Appointments
+	if err := cursor.All(ctx, &appointments); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+
+	return &appointments, nil
+}
+
 // GetAppointmentByID dohvata pregled po ID-u.
 func (rr *HealthCareRepo) GetAppointmentByID(appointmentID primitive.ObjectID) (*AppointmentData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -411,6 +434,12 @@ func (rr *HealthCareRepo) UpdateAppointment(id string, appointment *AppointmentD
 		update["reserved"] = appointment.Reserved
 	} else if !appointment.Reserved {
 		update["reserved"] = appointment.Reserved
+	}
+
+	if appointment.Systematic {
+		update["systematic"] = appointment.Systematic
+	} else if !appointment.Systematic {
+		update["systematic"] = appointment.Systematic
 	}
 
 	updateQuery := bson.M{"$set": update}
@@ -566,20 +595,23 @@ func (rr *HealthCareRepo) GetAllAppointments() (*Appointments, error) {
 }
 
 // SaveTherapyData funkcija čuva podatke o terapiji u bazi podataka
-func (rr *HealthCareRepo) SaveTherapyData(therapyData *TherapyData) error {
+func (rr *HealthCareRepo) SaveTherapyData(therapyData *TherapyData) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	therapiesCollection := rr.getCollection("therapies")
 
 	// Insert therapy data into therapies collection
-	_, err := therapiesCollection.InsertOne(ctx, therapyData)
+	result, err := therapiesCollection.InsertOne(ctx, therapyData)
 	if err != nil {
 		rr.logger.Println(err)
-		return err
+		return primitive.NilObjectID, err
 	}
 
-	return nil
+	// Vraća ID umetnutog dokumenta
+	insertedID := result.InsertedID.(primitive.ObjectID)
+
+	return insertedID, nil
 }
 
 func (rr *HealthCareRepo) UpdateTherapyData(id string, therapy *TherapyData) error {
@@ -593,6 +625,7 @@ func (rr *HealthCareRepo) UpdateTherapyData(id string, therapy *TherapyData) err
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		rr.logger.Println("Error converting ID to ObjectID:", err)
+		rr.logger.Println("Invalid ID:", id)
 		return err
 	}
 
@@ -684,7 +717,8 @@ func (rr *HealthCareRepo) GetAllTherapies() (Therapies, error) {
 // ShareTherapyDataWithDietService funkcija deli informacije o terapijama sa službom ishrane.
 func (rr *HealthCareRepo) SaveAndShareTherapyDataWithDietService(therapyData *TherapyData) error {
 	// 1. Zapise podatke o terapiji
-	if err := rr.SaveTherapyData(therapyData); err != nil {
+	id, err := rr.SaveTherapyData(therapyData)
+	if err != nil {
 		return err
 	}
 
@@ -692,7 +726,7 @@ func (rr *HealthCareRepo) SaveAndShareTherapyDataWithDietService(therapyData *Th
 	rr.allTherapies = append(rr.allTherapies, therapyData)
 
 	// 2. Pošalje podatke o terapiji službi ishrane
-	if err := rr.SendTherapyDataToDietService(therapyData); err != nil {
+	if err := rr.SendTherapyDataToDietService(id, therapyData); err != nil {
 		return err
 	}
 
@@ -700,18 +734,20 @@ func (rr *HealthCareRepo) SaveAndShareTherapyDataWithDietService(therapyData *Th
 }
 
 // SendTherapyDataToDietService funkcija šalje podatke o terapiji službi ishrane
-func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData) error {
-
+func (rr *HealthCareRepo) SendTherapyDataToDietService(id primitive.ObjectID, therapyData *TherapyData) error {
+	// Serializacija terapije u JSON
 	therapyJSON, err := json.Marshal(therapyData)
 	if err != nil {
 		rr.logger.Println("Error serializing therapy data:", err)
 		return err
 	}
 
+	// Konfiguracija endpointa servisa ishrane
 	foodServiceHost := os.Getenv("FOOD_SERVICE_HOST")
 	foodServicePort := os.Getenv("FOOD_SERVICE_PORT")
 	foodServiceEndpoint := fmt.Sprintf("http://%s:%s/therapy", foodServiceHost, foodServicePort)
 
+	// Kreiranje HTTP zahteva
 	req, err := http.NewRequest("POST", foodServiceEndpoint, bytes.NewBuffer(therapyJSON))
 	if err != nil {
 		rr.logger.Println("Error creating request to food service:", err)
@@ -719,7 +755,7 @@ func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// Šaljemo zahtev servisu ishrane
+	// Slanje zahteva servisu ishrane
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -728,12 +764,30 @@ func (rr *HealthCareRepo) SendTherapyDataToDietService(therapyData *TherapyData)
 	}
 	defer resp.Body.Close()
 
+	// Provera status koda odgovora
 	if resp.StatusCode != http.StatusOK {
 		rr.logger.Println("Food service returned non-OK status code:", resp.StatusCode)
 		return errors.New("food service returned non-OK status code")
 	}
 
 	return nil
+}
+
+// Proverava da li postoji HealthRecordID
+func (rr *HealthCareRepo) CheckHealthRecordExists(healthRecordID primitive.ObjectID) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+	recordsCollection := rr.getCollection("health_records")
+
+	// Proveri da li zapis postoji
+	filter := bson.M{"_id": healthRecordID}
+	count, err := recordsCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		rr.logger.Println("Error checking health record existence:", err)
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
 func (rr *HealthCareRepo) UpdateTherapyFromFoodService(updatedTherapy *TherapyData) error {

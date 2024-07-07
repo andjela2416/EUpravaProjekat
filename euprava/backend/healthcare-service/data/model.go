@@ -30,10 +30,10 @@ const (
 type Users []*User
 
 type TherapyData struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	StudentID primitive.ObjectID `bson:"studentId,omitempty" json:"studentId,omitempty"`
-	Diagnosis string             `bson:"diagnosis,omitempty" json:"diagnosis,omitempty"`
-	Status    Status             `bson:"status,omitempty" json:"status,omitempty"`
+	ID                    primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	StudentHealthRecordID primitive.ObjectID `bson:"studentHealthRecordID,omitempty" json:"studentHealthRecordID,omitempty"`
+	Diagnosis             string             `bson:"diagnosis,omitempty" json:"diagnosis,omitempty"`
+	Status                Status             `bson:"status,omitempty" json:"status,omitempty"`
 	//Medications  []Medication       `bson:"medications,omitempty" json:"medications,omitempty"`
 	//Instructions string             `bson:"instructions,omitempty" json:"instructions,omitempty"`
 }

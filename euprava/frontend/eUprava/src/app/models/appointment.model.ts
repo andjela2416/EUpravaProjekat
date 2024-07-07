@@ -8,3 +8,11 @@ export interface Appointment {
     field_of_study:string;
     reserved:boolean;
   }
+
+export interface TherapyData {
+  id?: string;
+  StudentHealthRecordId: string;
+  Diagnosis: string;
+}
+
+

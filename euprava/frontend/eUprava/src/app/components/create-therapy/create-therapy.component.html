@@ -1,0 +1,14 @@
+<div class="therapy-create-container">
+  <h2>Kreiranje Terapije</h2>
+  <form [formGroup]="therapyForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="studentHealthRecordId">Student HealthRecord ID(24)</label>
+      <input id="studentHealthRecordId" formControlName="studentHealthRecordId" type="text" required>
+    </div>
+    <div>
+      <label for="diagnosis">Dijagnoza</label>
+      <input id="diagnosis" formControlName="diagnosis" type="textarea" required>
+    </div>
+    <button type="submit" [disabled]="!therapyForm.valid">Kreiraj Terapiju</button>
+  </form>
+</div>

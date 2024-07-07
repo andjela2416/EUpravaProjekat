@@ -262,6 +262,34 @@ func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.
 	rw.WriteHeader(http.StatusOK)
 }
 
+// GetAllReservedAppointmentsForUser vraća sve rezervisane termine pregleda za određenog korisnika.
+func (h *HealthCareHandler) GetAllReservedAppointmentsForUser(rw http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(rw, "Missing User ID", http.StatusBadRequest)
+		return
+	}
+
+	appointments, err := h.healthCareRepo.GetAllReservedAppointmentsForUser(userID)
+	if err != nil {
+		h.logger.Print("Database exception: ", err)
+		http.Error(rw, "Error retrieving reserved appointments.", http.StatusInternalServerError)
+		return
+	}
+
+	if appointments == nil {
+		http.Error(rw, "No appointments found for the user.", http.StatusNotFound)
+		return
+	}
+
+	err = json.NewEncoder(rw).Encode(appointments)
+	if err != nil {
+		h.logger.Print("Error encoding appointments to JSON: ", err)
+		http.Error(rw, "Error encoding appointments to JSON.", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *HealthCareHandler) CancelAppointment(rw http.ResponseWriter, r *http.Request) {
 	var request struct {
 		AppointmentID string `json:"appointment_id"`
@@ -361,7 +389,7 @@ func (h *HealthCareHandler) GetAllTherapies(rw http.ResponseWriter, r *http.Requ
 
 func (h *HealthCareHandler) SaveTherapy(rw http.ResponseWriter, r *http.Request) {
 	therapyData := r.Context().Value(KeyProduct{}).(*data.TherapyData)
-	err := h.healthCareRepo.SaveTherapyData(therapyData)
+	_, err := h.healthCareRepo.SaveTherapyData(therapyData)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		rw.WriteHeader(http.StatusBadRequest)
@@ -380,7 +408,7 @@ func (h *HealthCareHandler) SaveTherapyData(rw http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = h.healthCareRepo.SaveTherapyData(&therapyData)
+	_, err = h.healthCareRepo.SaveTherapyData(&therapyData)
 	if err != nil {
 		h.logger.Println("Error saving therapy data:", err)
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -452,13 +480,33 @@ func (h *HealthCareHandler) GetTherapyDataByID(rw http.ResponseWriter, r *http.R
 
 func (h *HealthCareHandler) SaveAndShareTherapyDataWithDietService(rw http.ResponseWriter, r *http.Request) {
 	therapyData := r.Context().Value(KeyProduct{}).(*data.TherapyData)
-	err := h.healthCareRepo.SaveAndShareTherapyDataWithDietService(therapyData)
+
+	// Proveri da li HealthRecordID postoji
+	exists, err := h.healthCareRepo.CheckHealthRecordExists(therapyData.StudentHealthRecordID)
+	if err != nil {
+		h.logger.Print("Error checking health record existence: ", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error checking health record existence."))
+		return
+	}
+
+	if !exists {
+		h.logger.Print("Health record ID does not exist: ", therapyData.StudentHealthRecordID)
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Health record ID does not exist."))
+		return
+	}
+
+	therapyData.Status = "SentToFoodService"
+
+	err = h.healthCareRepo.SaveAndShareTherapyDataWithDietService(therapyData)
 	if err != nil {
 		h.logger.Print("Error sharing therapy data with diet service: ", err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		rw.Write([]byte("Error sharing therapy data with diet service."))
 		return
 	}
+
 	rw.WriteHeader(http.StatusOK)
 }
 
