@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -48,6 +49,7 @@ func (dc DormController) GetStudentByID(studentId string) (*models.User, error) 
 }
 func (dc *DormController) InsertApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		id, exists := c.Get("uid")
 		studentId := id.(string)
 		if !exists {
@@ -115,6 +117,7 @@ func (dc *DormController) GetApplication() gin.HandlerFunc {
 
 func (dc *DormController) InsertBuilding() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var building models.Building
 		if err := c.BindJSON(&building); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "parsing failed"})
@@ -125,11 +128,12 @@ func (dc *DormController) InsertBuilding() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 			return
 		}
-		err := dc.repo.InsertBuilding(building)
+		err, buildingId := dc.repo.InsertBuilding(building)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		building.Id = buildingId
 		c.JSON(http.StatusOK, gin.H{"Building created": building})
 
 	}
@@ -137,6 +141,31 @@ func (dc *DormController) InsertBuilding() gin.HandlerFunc {
 
 func (dc *DormController) GetBuilding() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		buildingId := c.Param("id")
+		building, err := dc.repo.GetBuilding(buildingId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, building)
+		return
+
+	}
+}
+
+func (dc *DormController) GetBuildingLocal(buildingId string) (models.Building, error) {
+
+	building, err := dc.repo.GetBuilding(buildingId)
+	if err != nil {
+		return *building, err
+	}
+	return *building, nil
+
+}
+func (dc *DormController) DeleteBuilding() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
 		buildingId := c.Param("id")
 		building, err := dc.repo.GetBuilding(buildingId)
 		if err != nil {
@@ -149,16 +178,48 @@ func (dc *DormController) GetBuilding() gin.HandlerFunc {
 	}
 }
 
-func (dc *DormController) DeleteBuilding() gin.HandlerFunc {
+// number is auto assigned
+// insert capacity
+// insert buildingid
+// Todo: insert room into building based on id
+// building id is not being inserted
+func (dc *DormController) InsertRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		type RoomInfo struct {
+			Capacity int `json:"capacity"`
+		}
+		buildingIdParam := c.Param("id")
+		var room RoomInfo
 
-		buildingId := c.Param("id")
-		building, err := dc.repo.GetBuilding(buildingId)
+		if err := c.BindJSON(&room); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "parsing failed", "details": err.Error()})
+			return
+		}
+
+		err := dc.repo.InsertRoom(room.Capacity, buildingIdParam)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"Room created": room})
+	}
+}
+
+func (dc *DormController) GetRoom() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roomNumberParam := c.Param("number")
+		buildingIdParam := c.Param("id")
+		roomNumber, err := strconv.Atoi(roomNumberParam)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		room, err := dc.repo.GetRoom(roomNumber, buildingIdParam)
 		if err != nil {
 			c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		c.JSON(http.StatusOK, building)
+		c.JSON(http.StatusOK, room)
 		return
 
 	}

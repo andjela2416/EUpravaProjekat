@@ -78,6 +78,17 @@ func (dr *DormRepo) Ping() {
 	}
 	fmt.Println(databases)
 }
+func (dr *DormRepo) GetClient() *mongo.Client {
+	return dr.cli
+}
+
+func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
+
+	var collection *mongo.Collection = client.Database(os.Getenv("DORM_DB_HOST")).Collection(collectionName)
+
+	return collection
+}
+
 func (dr *DormRepo) GetApplication(studentid string) (*models.Application, error) {
 
 	var app models.Application
@@ -125,7 +136,7 @@ func (dr *DormRepo) GetAllapplications() (*models.Application, error) {
 	return &apps, nil
 }
 
-func (dr *DormRepo) InsertBuilding(building models.Building) error {
+func (dr *DormRepo) InsertBuilding(building models.Building) (error, primitive.ObjectID) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	building.Id = primitive.NewObjectID()
@@ -133,42 +144,43 @@ func (dr *DormRepo) InsertBuilding(building models.Building) error {
 	result, err := buildingCollection.InsertOne(ctx, &building)
 	if err != nil {
 		dr.logger.Println(err)
-		return err
+		return err, building.Id
 	}
 	dr.logger.Printf("Documents ID: %v\n", result.InsertedID)
-	return nil
+	return nil, building.Id
 
 }
-}
 
-func (dr *DormRepo) GetClient() *mongo.Client {
-	return dr.cli
-}
-
-func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
-
-	var collection *mongo.Collection = client.Database(os.Getenv("DORM_DB_HOST")).Collection(collectionName)
-
-	return collection
-}
 func (dr *DormRepo) GetBuilding(id string) (*models.Building, error) {
 
 	var building models.Building
 	buildingCollection := OpenCollection(dr.cli, "buildings")
-
-	err := buildingCollection.FindOne(context.Background(), bson.M{"building.id": id}).Decode(&building)
+	buildingObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("No buildings found for id: %s", id)
+		return nil, fmt.Errorf("invalid building ID: %v", err)
+	}
+
+	err = buildingCollection.FindOne(context.Background(), bson.M{"_id": buildingObjectID}).Decode(&building)
+	if err != nil {
+		return nil, err
 	}
 
 	return &building, nil
 }
 func (dr *DormRepo) DeleteBuilding(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	buildingObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid building ID: %v", err)
+	}
+
 	buildingCollection := OpenCollection(dr.cli, "buildings")
 
-	result, err := buildingCollection.DeleteOne(context.TODO(), bson.M{"id": id})
+	result, err := buildingCollection.DeleteOne(ctx, bson.M{"_id": buildingObjectID})
 	if err != nil {
-		return err
+		return fmt.Errorf("error deleting building: %v", err)
 	}
 
 	if result.DeletedCount != 1 {
@@ -176,4 +188,81 @@ func (dr *DormRepo) DeleteBuilding(id string) error {
 	}
 
 	return nil
+}
+func (dr *DormRepo) UpdateBuilding(buildingID primitive.ObjectID, address string, name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+
+	update := bson.M{}
+	if address != "" {
+		update["address"] = address
+		update["name"] = name
+	}
+
+	_, err := buildingCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": buildingID},
+		bson.M{"$set": update},
+	)
+	if err != nil {
+		return fmt.Errorf("error updating building: %v", err)
+	}
+	return nil
+}
+func (dr *DormRepo) InsertRoom(insertedCapacity int, insertedBuildingId string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+	var room models.Room
+
+	// Convert string ID to ObjectID
+	buildingObjectId, err := primitive.ObjectIDFromHex(insertedBuildingId)
+	if err != nil {
+		return fmt.Errorf("invalid building ID: %v", err)
+	}
+
+	// Get the building
+	building, err := dr.GetBuilding(insertedBuildingId)
+	if err != nil {
+		return fmt.Errorf("failed to get building: %v", err)
+	}
+
+	// Set room properties
+	room.Room_Number = len(building.Rooms) + 1
+	room.Building_Id = buildingObjectId
+	room.Capacity = insertedCapacity
+
+	// Update the building's rooms slice
+	building.Rooms = append(building.Rooms, &room)
+
+	// Update the building document in MongoDB
+	_, err = buildingCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": buildingObjectId},
+		bson.M{"$set": bson.M{"rooms": building.Rooms}},
+	)
+	if err != nil {
+		return fmt.Errorf("error updating building: %v", err)
+	}
+
+	return nil
+}
+
+func (dr *DormRepo) GetRoom(number int, buildingId string) (*models.Room, error) {
+	var room models.Room
+	buildingCollection := OpenCollection(dr.cli, "buildings")
+	filter := bson.M{
+		"rooms.room_number": number,
+		"_id":               buildingId,
+	}
+
+	err := buildingCollection.FindOne(context.Background(), filter).Decode(&room)
+	if err != nil {
+		return nil, fmt.Errorf("room #%d in building %s not found", number, buildingId)
+	}
+
+	return &room, nil
 }

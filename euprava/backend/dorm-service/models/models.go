@@ -16,6 +16,7 @@ type User struct {
 	Phone      *string            `json:"phone" validate:"required"`
 	Address    *string            `json:"address" validate:"required"`
 }
+
 type Student struct {
 	Uid         string     `json:"uid"`
 	FirstName   string     `json:"first_name"`
@@ -23,30 +24,36 @@ type Student struct {
 	FinanceType string     `json:"finance_type"`
 	StudyInfo   *StudyInfo `json:"study_info"`
 }
+
 type StudyInfo struct {
 	HighschoolGPA float64 `json:"highschool_gpa"`
 	GPA           float64 `json:"gpa"`
 	ESBP          int     `json:"esbp"`
 	Year          int     `json:"year"`
 }
+
 type Application struct {
 	Status string `json:"status"` //accepted / rejected / pending
 	User   *User  `json:"user"`
 }
+
 type Selection struct {
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 }
+
 type Building struct {
 	Id      primitive.ObjectID `bson:"_id"`
-	Address string             `json:"address"`
-	Rooms   Rooms              `json:"rooms,omitempty"`
+	Name    string             `json:"name" bson:"name"`
+	Address string             `json:"address" bson:"address"`
+	Rooms   Rooms              `json:"rooms,omitempty" bson:"rooms"`
 }
+
 type Room struct {
-	RoomNumber int       `json:"room_number"`
-	Capacity   int       `json:"capacity"`
-	Building   *Building `json:"building"`
-	Students   *Students `json:"students,omitempty"`
+	Room_Number int                `json:"room_number,omitempty" bson:"room_number"`
+	Capacity    int                `json:"capacity" bson:"capacity"`
+	Building_Id primitive.ObjectID `json:"building_id" bson:"building_id"`
+	Students    *Students          `json:"students,omitempty" bson:"students,omitempty"`
 }
 
 type Students []*Student
