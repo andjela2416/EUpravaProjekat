@@ -2,12 +2,24 @@
   <h2>Kreiranje Terapije</h2>
   <form [formGroup]="therapyForm" (ngSubmit)="onSubmit()">
     <div>
-      <label for="studentHealthRecordId">Student HealthRecord ID(24)</label>
+      <label for="studentHealthRecordId">Student HealthRecord ID (24)</label>
       <input id="studentHealthRecordId" formControlName="studentHealthRecordId" type="text" required>
+      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['required']">
+        Student HealthRecord ID je obavezan.
+      </div>
+      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['minlength']">
+        Minimalna dužina je 24 karaktera.
+      </div>
+      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['maxlength']">
+        Maksimalna dužina je 24 karaktera.
+      </div>
     </div>
     <div>
       <label for="diagnosis">Dijagnoza</label>
       <input id="diagnosis" formControlName="diagnosis" type="textarea" required>
+      <div *ngIf="therapyForm.get('diagnosis')?.errors?.['required']">
+        Dijagnoza je obavezna.
+      </div>
     </div>
     <button type="submit" [disabled]="!therapyForm.valid">Kreiraj Terapiju</button>
   </form>

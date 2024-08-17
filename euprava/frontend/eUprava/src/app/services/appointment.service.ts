@@ -45,8 +45,12 @@ export class AppointmentService {
     return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reserved`);
   }
 
-  getReservedAppointmentsByStudent(id:string): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reservedByStudent?id=${id}`);
+  getReservedAppointmentsByStudent(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reservedByStudent`);
+  }
+
+  getAppointmentsByDoctor(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/byUser`);
   }
 
   scheduleAppointment(appointmentId: string): Observable<any> {

@@ -38,6 +38,22 @@ type TherapyData struct {
 	//Instructions string             `bson:"instructions,omitempty" json:"instructions,omitempty"`
 }
 
+type AuthUser struct {
+	ID            primitive.ObjectID `bson:"_id"`
+	First_name    *string            `json:"first_name" validate:"required,min=2,max=100"`
+	Last_name     *string            `json:"last_name" validate:"required,min=2,max=100"`
+	Email         *string            `json:"email" validate:"email,required"`
+	Password      *string            `json:"password" validate:"required,min=8"`
+	Phone         *string            `json:"phone" validate:"required"`
+	Address       *string            `json:"address" validate:"required"`
+	Token         *string            `json:"token"`
+	User_type     *string            `json:"user_type" validate:"required"`
+	Refresh_token *string            `json:"refresh_token"`
+	Created_at    time.Time          `json:"created_at"`
+	Updated_at    time.Time          `json:"updated_at"`
+	User_id       string             `json:"user_id"`
+}
+
 type Status string
 
 const (
@@ -81,6 +97,16 @@ func (o *Users) FromJSON(r io.Reader) error {
 }
 
 func (o *User) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *AuthUser) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
+func (o *AuthUser) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(o)
 }

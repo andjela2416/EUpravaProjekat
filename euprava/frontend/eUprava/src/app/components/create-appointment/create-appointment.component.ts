@@ -12,13 +12,12 @@ import { Router } from '@angular/router';
 export class CreateAppointmentComponent implements OnInit {
   appointmentForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private appointmentService: AppointmentService,private router: Router) {
+  constructor(private fb: FormBuilder, private appointmentService: AppointmentService, private router: Router) {
     this.appointmentForm = this.fb.group({
-      studentID: [''],
       date: ['', Validators.required],
-      time: ['', Validators.required], // Dodato polje za vreme
+      time: ['', Validators.required],
       doorNumber: ['', Validators.required],
-      description: ['']
+      description: ['', Validators.maxLength(200)] // maksimalno 200 karaktera za opis
     });
   }
 
@@ -27,28 +26,27 @@ export class CreateAppointmentComponent implements OnInit {
 
   onSubmit() {
     if (this.appointmentForm.valid) {
-      // Spajamo datum i vreme u jedan string u formatu koji očekujete na backendu
       const datetime = `${this.appointmentForm.value.date}T${this.appointmentForm.value.time}:00`;
       const dateObj = new Date(datetime);
 
-      // Kreiramo objekat za slanje na backend
       const appointmentData: Appointment = {
         studentId: '',
         date: dateObj,
         door_number: this.appointmentForm.value.doorNumber,
         description: this.appointmentForm.value.description,
         systematic: false,
-        reserved:false,
-        faculty_name:'',
-        field_of_study:''
+        reserved: false,
+        faculty_name: '',
+        field_of_study: ''
       };
+
       console.log(appointmentData);
 
       this.appointmentService.createAppointment(appointmentData)
         .subscribe(
           response => {
             console.log('Appointment created successfully:', response);
-            this.router.navigate(['/appointment-management']);
+            this.router.navigate(['']);
           },
           error => {
             console.error('Error creating appointment:', error);
@@ -56,7 +54,27 @@ export class CreateAppointmentComponent implements OnInit {
           }
         );
     } else {
-      // Form not valid, handle error or validation messages
+      Object.keys(this.appointmentForm.controls).forEach(field => {
+        const control = this.appointmentForm.get(field);
+        if (control) {
+          if (control instanceof FormGroup) {
+            Object.keys(control.controls).forEach(innerField => {
+              const innerControl = control.get(innerField);
+              if (innerControl) {
+                innerControl.markAsTouched({ onlySelf: true });
+              }
+            });
+          } else {
+            control.markAsTouched({ onlySelf: true });
+          }
+        }
+      });
+
     }
+  }
+
+  // Helper method to check if a form control has an error
+  hasError(controlName: string, errorName: string) {
+    return this.appointmentForm.controls[controlName].hasError(errorName);
   }
 }

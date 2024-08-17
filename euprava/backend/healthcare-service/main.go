@@ -67,6 +67,8 @@ func main() {
 	router.HandleFunc("/appointments/reserved", healthCareHandler.GetAllReservedAppointments).Methods(http.MethodGet)
 	router.HandleFunc("/appointments/not_reserved", healthCareHandler.GetAllNotReservedAppointments).Methods(http.MethodGet)
 
+	router.HandleFunc("/appointments/byUser", healthCareHandler.GetAllAppointmentsForUser).Methods(http.MethodGet)
+
 	router.HandleFunc("/appointments/reservedByStudent", healthCareHandler.GetAllReservedAppointmentsForUser).Methods(http.MethodGet)
 
 	saveTherapy := router.Methods(http.MethodPost).Subrouter()
@@ -101,6 +103,9 @@ func main() {
 
 	router.HandleFunc("/healthrecords", healthCareHandler.GetHealthRecordByID).Methods(http.MethodGet)
 
+	loggedUser := router.Methods(http.MethodPost).Subrouter()
+	loggedUser.HandleFunc("/loggedUser", healthCareHandler.LoginHandler)
+	loggedUser.Use(healthCareHandler.MiddlewareAuthUserDeserialization)
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,

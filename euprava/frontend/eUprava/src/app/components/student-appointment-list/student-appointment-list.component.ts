@@ -17,7 +17,7 @@ export class StudentAppointmentListComponent implements OnInit {
   }
 
   loadAppointments(): void {
-    this.appointmentService.getFreeAppointments().subscribe(
+    this.appointmentService.getReservedAppointmentsByStudent().subscribe(
       (data) => {
         this.appointments = data;
       },

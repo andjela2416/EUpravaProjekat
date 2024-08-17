@@ -22,6 +22,68 @@ func NewHealthCareHandler(l *log.Logger, r *data.HealthCareRepo) *HealthCareHand
 	return &HealthCareHandler{l, r}
 }
 
+// GetLoggedUserIDHandler rukuje zahtevom za preuzimanje ID-a ulogovanog korisnika iz sesije.
+func (h *HealthCareHandler) GetLoggedUserIDHandler(rw http.ResponseWriter, r *http.Request) {
+	userID, err := h.healthCareRepo.GetLoggedUserFromSession(r)
+	if err != nil {
+		h.logger.Println("Error retrieving logged user ID from session:", err)
+		http.Error(rw, "Error retrieving user ID from session", http.StatusInternalServerError)
+		return
+	}
+
+	if userID == "" {
+		http.Error(rw, "User ID not found in session", http.StatusNotFound)
+		return
+	}
+
+	// Vraćanje ID-a korisnika kao odgovor
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte(userID))
+}
+
+func (h *HealthCareHandler) LoginHandler(rw http.ResponseWriter, r *http.Request) {
+	//var user data.AuthUser
+
+	user := r.Context().Value(KeyProduct{}).(*data.AuthUser)
+	/*err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		h.logger.Println("Error decoding user from request body:", err)
+		http.Error(rw, "Invalid user data", http.StatusBadRequest)
+		return
+	}*/
+
+	// Proveravanje da li korisnik ima ID
+	if user.ID.String() == "" {
+		h.logger.Println("User ID is missing in the request body")
+		http.Error(rw, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Postavljanje ID-a korisnika u sesiju
+	err := h.healthCareRepo.SetUserInSession(rw, r, user)
+	if err != nil {
+		h.logger.Println("Error setting user ID in session:", err)
+		http.Error(rw, "Could not set session", http.StatusInternalServerError)
+		return
+	}
+
+	// Uspešna prijava, preusmeravanje ili slanje odgovora
+	//http.Redirect(rw, r, "/home", http.StatusSeeOther)
+	rw.WriteHeader(http.StatusOK)
+}
+
+// LogoutUser izlazi iz sesije.
+func (h *HealthCareHandler) LogoutUser(rw http.ResponseWriter, r *http.Request) {
+	err := h.healthCareRepo.LogoutUser(rw, r)
+	if err != nil {
+		h.logger.Println("Error logging out user:", err)
+		http.Error(rw, "Error logging out user", http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
 // mongo
 func (r *HealthCareHandler) InsertUser(rw http.ResponseWriter, h *http.Request) {
 	user := h.Context().Value(KeyProduct{}).(*data.User)
@@ -155,13 +217,13 @@ func (h *HealthCareHandler) DeleteUser(rw http.ResponseWriter, r *http.Request) 
 	rw.WriteHeader(http.StatusOK)
 }
 
-// CreateAppointment kreira novi pregled sa reserved postavljenim na false.
+// CreateAppointment kreira novi pregled sa reserved postavljenim na false
 func (h *HealthCareHandler) CreateAppointment(rw http.ResponseWriter, r *http.Request) {
 	appointmentData := r.Context().Value(KeyProduct{}).(*data.AppointmentData)
 
 	fmt.Printf("Received appointment: %+v\n", appointmentData)
 
-	err := h.healthCareRepo.CreateAppointment(appointmentData)
+	err := h.healthCareRepo.CreateAppointment(r, appointmentData)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		http.Error(rw, "Error creating appointment.", http.StatusInternalServerError)
@@ -251,7 +313,7 @@ func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.healthCareRepo.ScheduleAppointment(appointmentID)
+	err = h.healthCareRepo.ScheduleAppointment(r, appointmentID)
 	if err != nil {
 		h.logger.Println("Error scheduling appointment:", err)
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -264,16 +326,33 @@ func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.
 
 // GetAllReservedAppointmentsForUser vraća sve rezervisane termine pregleda za određenog korisnika.
 func (h *HealthCareHandler) GetAllReservedAppointmentsForUser(rw http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	if userID == "" {
-		http.Error(rw, "Missing User ID", http.StatusBadRequest)
-		return
-	}
 
-	appointments, err := h.healthCareRepo.GetAllReservedAppointmentsForUser(userID)
+	appointments, err := h.healthCareRepo.GetAllReservedAppointmentsForUser(r)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		http.Error(rw, "Error retrieving reserved appointments.", http.StatusInternalServerError)
+		return
+	}
+
+	if appointments == nil {
+		http.Error(rw, "No appointments found for the user.", http.StatusNotFound)
+		return
+	}
+
+	err = json.NewEncoder(rw).Encode(appointments)
+	if err != nil {
+		h.logger.Print("Error encoding appointments to JSON: ", err)
+		http.Error(rw, "Error encoding appointments to JSON.", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *HealthCareHandler) GetAllAppointmentsForUser(rw http.ResponseWriter, r *http.Request) {
+
+	appointments, err := h.healthCareRepo.GetAllAppointmentsForUser(r)
+	if err != nil {
+		h.logger.Print("Database exception: ", err)
+		http.Error(rw, "Error retrieving appointments.", http.StatusInternalServerError)
 		return
 	}
 
@@ -545,6 +624,21 @@ func (h *HealthCareHandler) GetDoneTherapiesFromFoodService(rw http.ResponseWrit
 func (s *HealthCareHandler) MiddlewareUserDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
 		users := &data.User{}
+		err := users.FromJSON(h.Body)
+		if err != nil {
+			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
+			s.logger.Fatal(err)
+			return
+		}
+		ctx := context.WithValue(h.Context(), KeyProduct{}, users)
+		h = h.WithContext(ctx)
+		next.ServeHTTP(rw, h)
+	})
+}
+
+func (s *HealthCareHandler) MiddlewareAuthUserDeserialization(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
+		users := &data.AuthUser{}
 		err := users.FromJSON(h.Body)
 		if err != nil {
 			http.Error(rw, "Unable to decode json", http.StatusBadRequest)

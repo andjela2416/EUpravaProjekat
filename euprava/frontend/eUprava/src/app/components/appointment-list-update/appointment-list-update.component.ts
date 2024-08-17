@@ -20,7 +20,7 @@ export class AppointmentListUpdateComponent implements OnInit {
   }
 
   loadAppointments(): void {
-    this.appointmentService.getAppointments().subscribe(data => {
+    this.appointmentService.getAppointmentsByDoctor().subscribe(data => {
       this.appointments = data;
     });
   }

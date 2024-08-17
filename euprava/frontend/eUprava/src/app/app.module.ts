@@ -15,6 +15,7 @@ import { TherapyCreateComponent } from './components/create-therapy/create-thera
 import { StudentAppointmentManagementComponent } from './components/student-appointment-management/student-appointment-management.component';
 import { StudentAppointmentListComponent } from './components/student-appointment-list/student-appointment-list.component';
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { StudentCancelAppointmentListComponent } from './components/student-canc
     TherapyCreateComponent,
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
-    StudentCancelAppointmentListComponent
+    StudentCancelAppointmentListComponent,
+    NavbarComponent
   ],
   imports: [
     BrowserModule,

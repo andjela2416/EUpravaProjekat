@@ -23,7 +23,7 @@ export class TherapyCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Možete ovde inicijalizovati komponentu ako je potrebno
+
   }
 
   onSubmit(): void {
@@ -34,8 +34,8 @@ export class TherapyCreateComponent implements OnInit {
         .subscribe(
           response => {
             console.log('Therapy created successfully', response);
-            // Primer preusmeravanja na odgovarajuću stranicu nakon kreiranja terapije
-            this.router.navigate(['']); // Preusmeravanje na listu terapija ili drugu stranicu
+            alert('Therapy created successfully')
+            this.router.navigate(['']);
           },
           error => {
             console.error('Error creating therapy', error);
