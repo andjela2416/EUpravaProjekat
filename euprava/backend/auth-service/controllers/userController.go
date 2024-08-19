@@ -42,41 +42,9 @@ func HashPassword(password string) string {
 
 func GetLoggedInUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.Request.Header.Get("Authorization")
-
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
-			return
-		}
-
-		tokenString := strings.Split(authHeader, "Bearer ")[1]
-
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is empty"})
-			return
-		}
-
-		token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("invalid signing method")
-			}
-			return []byte(SECRET_KEY), nil
-		})
-
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "token claims are invalid"})
-			return
-		}
-
-		userID, ok := claims["user_id"].(string)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in token"})
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 			return
 		}
 
@@ -84,9 +52,9 @@ func GetLoggedInUser() gin.HandlerFunc {
 		defer cancel()
 
 		var user models.User
-		err = userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 			return
 		}
 
@@ -166,88 +134,6 @@ func Register() gin.HandlerFunc {
 	}
 }
 
-// func Register() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-
-// 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 		var user models.User
-// 		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
-// 		l.Println(c.GetString("Authorization"))
-
-// 		if err := c.BindJSON(&user); err != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-// 			return
-// 		}
-
-// 		validationErr := validate.Struct(user)
-// 		if validationErr != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-// 			return
-// 		}
-
-// 		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
-// 		defer cancel()
-// 		if err != nil {
-// 			log.Panic(err)
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the email"})
-// 			return
-// 		}
-
-// 		password := HashPassword(*user.Password)
-// 		user.Password = &password
-
-// 		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
-// 		defer cancel()
-// 		if err != nil {
-// 			log.Panic(err)
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the phone number"})
-// 			return
-// 		}
-
-// 		if count > 0 {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "this email or phone number already exists"})
-// 			return
-// 		}
-
-// 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-// 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-// 		user.ID = primitive.NewObjectID()
-// 		user.User_id = user.ID.Hex()
-// 		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, *&user.User_id)
-// 		user.Token = &token
-// 		user.Refresh_token = &refreshToken
-
-// 		jsonData, err := json.Marshal(user)
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON data"})
-// 			return
-// 		}
-
-// 		resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with the university service"})
-// 			l.Println(c.GetString(err.Error()))
-// 			return
-// 		}
-// 		defer resp.Body.Close()
-
-// 		l = log.New(gin.DefaultWriter, "MY STATUS CODE IS: "+strconv.Itoa(resp.StatusCode), log.LstdFlags)
-// 		if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save student data in the university service"})
-// 			return
-// 		}
-// 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
-// 		if insertErr != nil {
-// 			l.Println(err.Error())
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
-// 			return
-// 		}
-// 		c.JSON(http.StatusOK, resultInsertionNumber)
-// 		defer cancel()
-// 	}
-// }
-
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("Request headers:", c.Errors)
@@ -256,7 +142,7 @@ func Login() gin.HandlerFunc {
 		var foundUser models.User
 
 		if err := c.BindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": ""})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -271,7 +157,6 @@ func Login() gin.HandlerFunc {
 		defer cancel()
 		if passwordIsValid != true {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password"})
-
 			return
 		}
 
@@ -279,6 +164,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
 			return
 		}
+
 		token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
 
 		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
@@ -286,7 +172,6 @@ func Login() gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
 			return
 		}
 
@@ -296,8 +181,11 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, foundUser)
-
+		c.JSON(http.StatusOK, gin.H{
+			"user":          foundUser,
+			"token":         token,
+			"refresh_token": refreshToken,
+		})
 	}
 }
 
@@ -337,15 +225,8 @@ func sendUserToHealthcareService(user models.User) error {
 
 func Logout() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
-		refreshToken := helper.ExtractRefreshToken(c)
-		l.Println("primljen je: ", c.GetString("Authorization"))
-		if refreshToken == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "no refersh token found"})
-		} else {
-
-			c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
-		}
+		c.Set("userID", "")
+		c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
 	}
 }
 
