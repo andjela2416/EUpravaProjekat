@@ -43,17 +43,24 @@ const Navbar = () => {
             </li>
             {userRole === "STUDENT" || userRole === "PROFESOR" || userRole === "ADMIN" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/university">
+                <Link className="nav-link" routerLink="/university">
                   Fakultet
                 </Link>
               </li>
             ) : null}
-            {userRole === "STUDENT" || userRole === "DOKTOR" || userRole === "DEZURAN" ? (
+            {userRole === "DOKTOR" || userRole === "DEZURAN" ? (
               <li className="nav-item">
-                <Link className="nav-link" to="/health-care">
+                <Link className="nav-link" to="http://localhost:4200/">
                   Zdravstvo
                 </Link>
               </li>
+            ) : null}
+            {userRole === "STUDENT" || userRole === "DEZURAN" ? (
+                <li className="nav-item">
+                  <Link className="nav-link" to="http://localhost:4200/student-appointment-management">
+                    Zdravstvo
+                  </Link>
+                </li>
             ) : null}
             {userRole === "STUDENT" || userRole === "ADMIN" ? (
               <li className="nav-item">

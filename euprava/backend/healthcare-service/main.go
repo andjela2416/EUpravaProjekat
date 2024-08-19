@@ -22,11 +22,9 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
-	// Inicijalizacija loggera koji će se koristiti, sa prefiksom i datumom za svaki log
 	logger := log.New(os.Stdout, "[res-api] ", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[res-store] ", log.LstdFlags)
 
-	// NoSQL: Inicijalizacija prodavnice proizvoda
 	store, err := data.NewHealthCareRepo(timeoutContext, storeLogger)
 	if err != nil {
 		logger.Fatal(err)
@@ -41,24 +39,73 @@ func main() {
 	router.Use(MiddlewareContentTypeSet)
 
 	getStudents := router.Methods(http.MethodGet).Subrouter()
-	getStudents.HandleFunc("/students", healthCareHandler.GetAllStudents)
+	getStudents.HandleFunc("/students", healthCareHandler.GetAllUsers)
 
 	insertStudent := router.Methods(http.MethodPost).Subrouter()
-	insertStudent.HandleFunc("/students", healthCareHandler.InsertStudent)
-	insertStudent.Use(healthCareHandler.MiddlewareStudentDeserialization)
+	insertStudent.HandleFunc("/students", healthCareHandler.InsertUser)
+	insertStudent.Use(healthCareHandler.MiddlewareUserDeserialization)
 
 	router.HandleFunc("/appointments", healthCareHandler.GetAllAppointments).Methods(http.MethodGet)
 	router.HandleFunc("/therapies", healthCareHandler.GetAllTherapies).Methods(http.MethodGet)
 	router.HandleFunc("/doneTherapies", healthCareHandler.GetDoneTherapiesFromFoodService).Methods(http.MethodGet)
 
 	scheduleAppointment := router.Methods(http.MethodPost).Subrouter()
-	scheduleAppointment.HandleFunc("/appointments", healthCareHandler.ScheduleAppointment)
-	scheduleAppointment.Use(healthCareHandler.MiddlewareAppointmentDeserialization)
+	scheduleAppointment.HandleFunc("/appointments/schedule", healthCareHandler.ScheduleAppointment)
+	//scheduleAppointment.Use(healthCareHandler.MiddlewareAppointmentDeserialization)
+
+	createAppointment := router.Methods(http.MethodPost).Subrouter()
+	createAppointment.HandleFunc("/appointments", healthCareHandler.CreateAppointment)
+	createAppointment.Use(healthCareHandler.MiddlewareAppointmentDeserialization)
+
+	router.HandleFunc("/appointmentById", healthCareHandler.GetAppointmentByID).Methods(http.MethodGet)
+
+	updateAppointment := router.Methods(http.MethodPatch).Subrouter()
+	updateAppointment.HandleFunc("/appointment/update/{id}", healthCareHandler.UpdateAppointment)
+	updateAppointment.Use(healthCareHandler.MiddlewareAppointmentDeserialization)
+
+	router.HandleFunc("/appointment/delete", healthCareHandler.DeleteAppointment).Methods(http.MethodDelete)
+	router.HandleFunc("/appointments/reserved", healthCareHandler.GetAllReservedAppointments).Methods(http.MethodGet)
+	router.HandleFunc("/appointments/not_reserved", healthCareHandler.GetAllNotReservedAppointments).Methods(http.MethodGet)
+
+	router.HandleFunc("/appointments/byUser", healthCareHandler.GetAllAppointmentsForUser).Methods(http.MethodGet)
+
+	router.HandleFunc("/appointments/reservedByStudent", healthCareHandler.GetAllReservedAppointmentsForUser).Methods(http.MethodGet)
 
 	saveTherapy := router.Methods(http.MethodPost).Subrouter()
 	saveTherapy.HandleFunc("/therapy", healthCareHandler.SaveAndShareTherapyDataWithDietService)
 	saveTherapy.Use(healthCareHandler.MiddlewareTherapyDeserialization)
 
+	updateTherapy := router.Methods(http.MethodPut).Subrouter()
+	updateTherapy.HandleFunc("/updateTherapy", healthCareHandler.UpdateTherapyFromFoodService)
+	updateTherapy.Use(healthCareHandler.MiddlewareTherapyDeserialization)
+
+	// Dodavanje ruta za terapije
+	router.HandleFunc("/therapy/{id}", healthCareHandler.GetTherapyDataByID).Methods(http.MethodGet)
+	router.HandleFunc("/therapy/{id}", healthCareHandler.DeleteTherapyData).Methods(http.MethodDelete)
+
+	updateTherapy2 := router.Methods(http.MethodPut).Subrouter()
+	updateTherapy2.HandleFunc("/therapy/{id}", healthCareHandler.UpdateTherapyData)
+	updateTherapy2.Use(healthCareHandler.MiddlewareTherapyDeserialization)
+
+	router.HandleFunc("/appointments/cancel", healthCareHandler.CancelAppointment).Methods("POST")
+
+	router.HandleFunc("/student", healthCareHandler.GetUserByID).Methods(http.MethodGet)
+
+	updateStudent := router.Methods(http.MethodPut).Subrouter()
+	updateStudent.HandleFunc("/student/update/{id}", healthCareHandler.UpdateUser)
+	updateStudent.Use(healthCareHandler.MiddlewareUserDeserialization)
+
+	router.HandleFunc("/student/delete", healthCareHandler.DeleteUser).Methods(http.MethodDelete)
+
+	updateHealthRecord := router.Methods(http.MethodPut).Subrouter()
+	updateHealthRecord.HandleFunc("/healthrecords/{id}", healthCareHandler.UpdateHealthRecord)
+	updateHealthRecord.Use(healthCareHandler.MiddlewareHealthRecordDeserialization)
+
+	router.HandleFunc("/healthrecords", healthCareHandler.GetHealthRecordByID).Methods(http.MethodGet)
+
+	loggedUser := router.Methods(http.MethodPost).Subrouter()
+	loggedUser.HandleFunc("/loggedUser", healthCareHandler.LoginHandler)
+	loggedUser.Use(healthCareHandler.MiddlewareAuthUserDeserialization)
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,

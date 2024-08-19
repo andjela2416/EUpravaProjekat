@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,6 +38,60 @@ func HashPassword(password string) string {
 	}
 
 	return string(bytes)
+}
+
+func GetLoggedInUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.Request.Header.Get("Authorization")
+
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
+			return
+		}
+
+		tokenString := strings.Split(authHeader, "Bearer ")[1]
+
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is empty"})
+			return
+		}
+
+		token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("invalid signing method")
+			}
+			return []byte(SECRET_KEY), nil
+		})
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token claims are invalid"})
+			return
+		}
+
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in token"})
+			return
+		}
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var user models.User
+		err = userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, user)
+	}
 }
 
 func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
@@ -76,10 +132,8 @@ func Register() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email"})
 			return
 		}
-
 		password := HashPassword(*user.Password)
 		user.Password = &password
-
 		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
 		defer cancel()
 		if err != nil {
@@ -236,9 +290,49 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
+		err = sendUserToHealthcareService(foundUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with healthcare service"})
+			return
+		}
+
 		c.JSON(http.StatusOK, foundUser)
 
 	}
+}
+
+func sendUserToHealthcareService(user models.User) error {
+	healthcareURL := fmt.Sprintf("http://healthcare_service:8004/loggedUser")
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("Failed to marshal user: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", healthcareURL, bytes.NewBuffer(userJSON))
+	if err != nil {
+		return fmt.Errorf("Failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	println("lola", user.ID.String())
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	println("lolaNA")
+	if err != nil {
+		print("failed", err)
+		return fmt.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	println("lola????")
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Healthcare service returned non-200 status: %v", resp.Status)
+	}
+
+	return nil
 }
 
 func Logout() gin.HandlerFunc {
