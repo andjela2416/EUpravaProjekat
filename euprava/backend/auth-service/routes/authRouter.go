@@ -11,5 +11,4 @@ func AuthRoutes(routes *gin.Engine) {
 	routes.POST("/users/login", controller.Login())
 	routes.POST("/users/logout", controller.Logout())
 	routes.GET("/user/me", controller.GetLoggedInUser())
-	//routes.GET("/token", controller.GetToken())
 }
