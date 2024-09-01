@@ -139,23 +139,7 @@ services:
       - university_data_base:/data/db
     networks:
       - network
-
-  # keycloak:
-  #   image: jboss/keycloak:latest
-  #   container_name: keycloak
-  #   build:
-  #     context: .
-  #   environment:
-  #     - KEYCLOAK_USER=admin
-  #     - KEYCLOAK_PASSWORD=admin
-  #     - KEYCLOAK_CLIENT_ID=euprava
-  #     - KEYCLOAK_CLIENT_SECRET=dz0a1vY7Jqgbw59W0KiZs1rffuHB2a1t
-  #     - KEYCLOAK_REDIRECT_URL=http://localhost:8080/callback
-  #   volumes:
-  #     - ./.containers/keycloak:/opt/jboss/keycloak/standalone/data
-  #   ports:
-  #     - 18080:8080
-
+      
   healthcare_db:
     image: mongo
     container_name: healthcare_db
