@@ -9,62 +9,136 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Student struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	First_Name *string            `bson:"first_name" json:"first_name" validate:"required"`
-	Last_Name  *string            `bson:"last_name" json:"last_name"`
-	Gender     Gender             `bson:"gender,omitempty" json:"gender,omitempty"`
-	Residence  string             `bson:"residence,omitempty" json:"residence,omitempty"`
-	Username   *string            `bson:"username" json:"username"`
-	Email      string             `bson:"email" json:"email" validate:"required,email"`
-	Address    *string            `bson:"address" json:"address"`
-	User_type  *string            `bson:"user_type" json:"user_type" validate:"required,oneof=Guest Host User"`
-	StudyInfo  StudyInfo          `bson:"study_info,omitempty" json:"study_info,omitempty"`
-}
-
-type StudyInfo struct {
-	HighschoolGPA float64 `bson:"highschool_gpa,omitempty" json:"highschool_gpa,omitempty"`
-	GPA           float64 `bson:"gpa,omitempty" json:"gpa,omitempty"`
-	ESBP          int     `bson:"esbp,omitempty" json:"esbp,omitempty"`
-	Year          int     `bson:"year,omitempty" json:"year,omitempty"`
-}
-
-type Notification struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Title     string             `bson:"title" json:"title" validate:"required"`
-	Content   string             `bson:"content" json:"content"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-}
-
+type UserType string
 type Gender string
 
 const (
-	Male   = "Male"
-	Female = "Female"
+	StudentType        UserType = "STUDENT"
+	ProfessorType      UserType = "PROFESSOR"
+	AdministratorType  UserType = "ADMINISTRATOR"
+	StudentServiceType UserType = "STUDENTSKA_SLUZBA"
+
+	Male   Gender = "Male"
+	Female Gender = "Female"
 )
 
-type Students []*Student
-
-type Notifications []*Notification
-
-func (n *Notifications) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(n)
+type University struct {
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name            string             `bson:"name" json:"name" validate:"required"`
+	Location        string             `bson:"location" json:"location"`
+	FoundationYear  int                `bson:"foundation_year" json:"foundation_year"`
+	StudentCount    int                `bson:"student_count" json:"student_count"`
+	StaffCount      int                `bson:"staff_count" json:"staff_count"`
+	Accreditation   string             `bson:"accreditation" json:"accreditation"`
+	OfferedPrograms []string           `bson:"offered_programs" json:"offered_programs"`
 }
 
-func (n *Notification) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(n)
+type Department struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name" validate:"required"`
+	Chief         Professor          `bson:"chief" json:"chief"`
+	StudyPrograms []string           `bson:"study_programs" json:"study_programs"`
+	Staff         []Professor        `bson:"staff" json:"staff"`
 }
 
-func (n *Notification) FromJSON(r io.Reader) error {
-	d := json.NewDecoder(r)
-	return d.Decode(n)
+type Professor struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Subjects []Course           `bson:"subjects" json:"subjects"`
+	Office   string             `bson:"office" json:"office"`
 }
 
-func (s *Students) ToJSON(w io.Writer) error {
+type Assistant struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Professor Professor          `bson:"professor" json:"professor"`
+	Courses   []Course           `bson:"courses" json:"courses"`
+}
+
+type Course struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name" validate:"required"`
+	Department    Department         `bson:"department" json:"department"`
+	Professor     Professor          `bson:"professor" json:"professor"`
+	Schedule      string             `bson:"schedule" json:"schedule"`
+	Prerequisites []string           `bson:"prerequisites" json:"prerequisites"`
+}
+
+type StudentService struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name" validate:"required"`
+	Department    string             `bson:"department" json:"department"`
+	EmployeeCount int                `bson:"employee_count" json:"employee_count"`
+}
+
+type Administrator struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Position       string             `bson:"position" json:"position"`
+	StudentService StudentService     `bson:"student_service" json:"student_service"`
+}
+
+type User struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FirstName   string             `bson:"first_name" json:"first_name" validate:"required"`
+	LastName    string             `bson:"last_name" json:"last_name"`
+	Username    string             `bson:"username" json:"username"`
+	Email       string             `bson:"email" json:"email" validate:"required,email"`
+	DateOfBirth time.Time          `bson:"date_of_birth" json:"date_of_birth"`
+	Password    string             `bson:"password" json:"password"`
+	UserType    UserType           `bson:"user_type" json:"user_type"`
+}
+
+type Student struct {
+	User
+	Major        string `bson:"major" json:"major"`
+	YearOfStudy  int    `bson:"year_of_study" json:"year_of_study"`
+	AssignedDorm string `bson:"assigned_dorm" json:"assigned_dorm"`
+	Scholarship  bool   `bson:"scholarship" json:"scholarship"`
+}
+
+type Exam struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Student  Student            `bson:"student" json:"student"`
+	Course   Course             `bson:"course" json:"course"`
+	ExamDate time.Time          `bson:"exam_date" json:"exam_date"`
+}
+
+func (u *University) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
-	return e.Encode(s)
+	return e.Encode(u)
+}
+
+func (d *Department) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(d)
+}
+
+func (p *Professor) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
+func (a *Assistant) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(a)
+}
+
+func (c *Course) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(c)
+}
+
+func (ss *StudentService) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(ss)
+}
+
+func (adm *Administrator) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(adm)
+}
+
+func (u *User) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(u)
 }
 
 func (s *Student) ToJSON(w io.Writer) error {
@@ -72,7 +146,57 @@ func (s *Student) ToJSON(w io.Writer) error {
 	return e.Encode(s)
 }
 
+func (e *Exam) ToJSON(w io.Writer) error {
+	encoder := json.NewEncoder(w)
+	return encoder.Encode(e)
+}
+
+func (u *University) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(u)
+}
+
+func (d *Department) FromJSON(r io.Reader) error {
+	decoder := json.NewDecoder(r)
+	return decoder.Decode(d)
+}
+
+func (p *Professor) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(p)
+}
+
+func (a *Assistant) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(a)
+}
+
+func (c *Course) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(c)
+}
+
+func (ss *StudentService) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(ss)
+}
+
+func (adm *Administrator) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(adm)
+}
+
+func (u *User) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(u)
+}
+
 func (s *Student) FromJSON(r io.Reader) error {
 	d := json.NewDecoder(r)
 	return d.Decode(s)
+}
+
+func (e *Exam) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(e)
 }
