@@ -340,3 +340,198 @@ func (ctrl *Controllers) DeleteUniversity(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+func (ctrl *Controllers) CreateExam(c *gin.Context) {
+	var exam repositories.Exam
+	if err := c.BindJSON(&exam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateExam(&exam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, exam)
+}
+
+func (ctrl *Controllers) GetExamByID(c *gin.Context) {
+	id := c.Param("id")
+
+	exam, err := ctrl.Repo.GetExamByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Exam not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, exam)
+}
+
+func (ctrl *Controllers) UpdateExam(c *gin.Context) {
+	id := c.Param("id")
+	var exam repositories.Exam
+	if err := c.BindJSON(&exam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	exam.ID = objectID
+
+	err = ctrl.Repo.UpdateExam(&exam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, exam)
+}
+
+func (ctrl *Controllers) DeleteExam(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteExam(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+func (ctrl *Controllers) CreateAdministrator(c *gin.Context) {
+	var administrator repositories.Administrator
+	if err := c.BindJSON(&administrator); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateAdministrator(&administrator)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, administrator)
+}
+
+func (ctrl *Controllers) GetAdministratorByID(c *gin.Context) {
+	id := c.Param("id")
+
+	administrator, err := ctrl.Repo.GetAdministratorByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Administrator not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, administrator)
+}
+
+func (ctrl *Controllers) UpdateAdministrator(c *gin.Context) {
+	id := c.Param("id")
+	var administrator repositories.Administrator
+	if err := c.BindJSON(&administrator); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	administrator.ID = objectID
+
+	err = ctrl.Repo.UpdateAdministrator(&administrator)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, administrator)
+}
+
+func (ctrl *Controllers) DeleteAdministrator(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteAdministrator(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+func (ctrl *Controllers) CreateAssistant(c *gin.Context) {
+	var assistant repositories.Assistant
+	if err := c.BindJSON(&assistant); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateAssistant(&assistant)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, assistant)
+}
+
+func (ctrl *Controllers) GetAssistantByID(c *gin.Context) {
+	id := c.Param("id")
+
+	assistant, err := ctrl.Repo.GetAssistantByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assistant not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, assistant)
+}
+
+func (ctrl *Controllers) UpdateAssistant(c *gin.Context) {
+	id := c.Param("id")
+	var assistant repositories.Assistant
+	if err := c.BindJSON(&assistant); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	assistant.ID = objectID
+
+	err = ctrl.Repo.UpdateAssistant(&assistant)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, assistant)
+}
+
+func (ctrl *Controllers) DeleteAssistant(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteAssistant(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
