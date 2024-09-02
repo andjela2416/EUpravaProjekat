@@ -168,7 +168,6 @@ func (r *Repository) DeleteDepartment(departmentID string) error {
 	return err
 }
 
-// CRUD operations for Professor
 func (r *Repository) CreateProfessor(professor *Professor) error {
 	collection := r.getCollection("professor")
 	result, err := collection.InsertOne(context.TODO(), professor)
@@ -209,6 +208,47 @@ func (r *Repository) DeleteProfessor(professorID string) error {
 	return err
 }
 
+func (r *Repository) CreateAssistant(assistant *Assistant) error {
+	collection := r.getCollection("assistant")
+	result, err := collection.InsertOne(context.TODO(), assistant)
+	if err != nil {
+		return err
+	}
+	assistant.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *Repository) GetAssistantByID(assistantID string) (*Assistant, error) {
+	collection := r.getCollection("assistant")
+	objectID, err := primitive.ObjectIDFromHex(assistantID)
+	if err != nil {
+		return nil, err
+	}
+	var assistant Assistant
+	err = collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&assistant)
+	if err != nil {
+		return nil, err
+	}
+	return &assistant, nil
+}
+
+func (r *Repository) UpdateAssistant(assistant *Assistant) error {
+	collection := r.getCollection("assistant")
+	_, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": assistant.ID}, assistant)
+	return err
+}
+
+func (r *Repository) DeleteAssistant(assistantID string) error {
+	collection := r.getCollection("assistant")
+	objectID, err := primitive.ObjectIDFromHex(assistantID)
+	if err != nil {
+		return err
+	}
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	return err
+}
+
+// CRUD operations for Course
 func (r *Repository) CreateCourse(course *Course) error {
 	collection := r.getCollection("course")
 	result, err := collection.InsertOne(context.TODO(), course)
@@ -242,6 +282,86 @@ func (r *Repository) UpdateCourse(course *Course) error {
 func (r *Repository) DeleteCourse(courseID string) error {
 	collection := r.getCollection("course")
 	objectID, err := primitive.ObjectIDFromHex(courseID)
+	if err != nil {
+		return err
+	}
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	return err
+}
+
+func (r *Repository) CreateStudentService(studentService *StudentService) error {
+	collection := r.getCollection("studentservice")
+	result, err := collection.InsertOne(context.TODO(), studentService)
+	if err != nil {
+		return err
+	}
+	studentService.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *Repository) GetStudentServiceByID(studentServiceID string) (*StudentService, error) {
+	collection := r.getCollection("studentservice")
+	objectID, err := primitive.ObjectIDFromHex(studentServiceID)
+	if err != nil {
+		return nil, err
+	}
+	var studentService StudentService
+	err = collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&studentService)
+	if err != nil {
+		return nil, err
+	}
+	return &studentService, nil
+}
+
+func (r *Repository) UpdateStudentService(studentService *StudentService) error {
+	collection := r.getCollection("studentservice")
+	_, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": studentService.ID}, studentService)
+	return err
+}
+
+func (r *Repository) DeleteStudentService(studentServiceID string) error {
+	collection := r.getCollection("studentservice")
+	objectID, err := primitive.ObjectIDFromHex(studentServiceID)
+	if err != nil {
+		return err
+	}
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	return err
+}
+
+func (r *Repository) CreateAdministrator(administrator *Administrator) error {
+	collection := r.getCollection("administrator")
+	result, err := collection.InsertOne(context.TODO(), administrator)
+	if err != nil {
+		return err
+	}
+	administrator.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *Repository) GetAdministratorByID(administratorID string) (*Administrator, error) {
+	collection := r.getCollection("administrator")
+	objectID, err := primitive.ObjectIDFromHex(administratorID)
+	if err != nil {
+		return nil, err
+	}
+	var administrator Administrator
+	err = collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&administrator)
+	if err != nil {
+		return nil, err
+	}
+	return &administrator, nil
+}
+
+func (r *Repository) UpdateAdministrator(administrator *Administrator) error {
+	collection := r.getCollection("administrator")
+	_, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": administrator.ID}, administrator)
+	return err
+}
+
+func (r *Repository) DeleteAdministrator(administratorID string) error {
+	collection := r.getCollection("administrator")
+	objectID, err := primitive.ObjectIDFromHex(administratorID)
 	if err != nil {
 		return err
 	}
