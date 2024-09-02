@@ -168,6 +168,7 @@ func (r *Repository) DeleteDepartment(departmentID string) error {
 	return err
 }
 
+// CRUD operations for Professor
 func (r *Repository) CreateProfessor(professor *Professor) error {
 	collection := r.getCollection("professor")
 	result, err := collection.InsertOne(context.TODO(), professor)
@@ -201,6 +202,86 @@ func (r *Repository) UpdateProfessor(professor *Professor) error {
 func (r *Repository) DeleteProfessor(professorID string) error {
 	collection := r.getCollection("professor")
 	objectID, err := primitive.ObjectIDFromHex(professorID)
+	if err != nil {
+		return err
+	}
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	return err
+}
+
+func (r *Repository) CreateCourse(course *Course) error {
+	collection := r.getCollection("course")
+	result, err := collection.InsertOne(context.TODO(), course)
+	if err != nil {
+		return err
+	}
+	course.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *Repository) GetCourseByID(courseID string) (*Course, error) {
+	collection := r.getCollection("course")
+	objectID, err := primitive.ObjectIDFromHex(courseID)
+	if err != nil {
+		return nil, err
+	}
+	var course Course
+	err = collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&course)
+	if err != nil {
+		return nil, err
+	}
+	return &course, nil
+}
+
+func (r *Repository) UpdateCourse(course *Course) error {
+	collection := r.getCollection("course")
+	_, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": course.ID}, course)
+	return err
+}
+
+func (r *Repository) DeleteCourse(courseID string) error {
+	collection := r.getCollection("course")
+	objectID, err := primitive.ObjectIDFromHex(courseID)
+	if err != nil {
+		return err
+	}
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	return err
+}
+
+func (r *Repository) CreateExam(exam *Exam) error {
+	collection := r.getCollection("exam")
+	result, err := collection.InsertOne(context.TODO(), exam)
+	if err != nil {
+		return err
+	}
+	exam.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *Repository) GetExamByID(examID string) (*Exam, error) {
+	collection := r.getCollection("exam")
+	objectID, err := primitive.ObjectIDFromHex(examID)
+	if err != nil {
+		return nil, err
+	}
+	var exam Exam
+	err = collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&exam)
+	if err != nil {
+		return nil, err
+	}
+	return &exam, nil
+}
+
+func (r *Repository) UpdateExam(exam *Exam) error {
+	collection := r.getCollection("exam")
+	_, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": exam.ID}, exam)
+	return err
+}
+
+func (r *Repository) DeleteExam(examID string) error {
+	collection := r.getCollection("exam")
+	objectID, err := primitive.ObjectIDFromHex(examID)
 	if err != nil {
 		return err
 	}
