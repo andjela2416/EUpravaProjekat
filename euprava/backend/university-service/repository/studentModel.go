@@ -2,9 +2,8 @@ package repositories
 
 import (
 	"encoding/json"
-	"time"
-
 	"io"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

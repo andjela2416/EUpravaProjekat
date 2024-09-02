@@ -1,145 +1,277 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"time"
-
 	repositories "university-service/repository"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func CreateStudentHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var newStudent repositories.Student
-		if err := c.ShouldBindJSON(&newStudent); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		if err := repositories.Createstudent(client, &newStudent); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.Status(http.StatusCreated)
-	}
+type Controllers struct {
+	Repo *repositories.Repository
 }
 
-func GetStudentByIDHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, err := primitive.ObjectIDFromHex(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid student ID"})
-			return
-		}
-
-		student, err := repositories.GetstudentByID(client, userID.Hex())
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "student not found"})
-			return
-		}
-
-		c.JSON(http.StatusOK, student)
-	}
+func NewControllers(repo *repositories.Repository) *Controllers {
+	return &Controllers{Repo: repo}
 }
 
-func CreateNotificationHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var newNotification repositories.Notification
-		if err := c.ShouldBindJSON(&newNotification); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		if err := repositories.CreateNotification(client, &newNotification); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.Status(http.StatusCreated)
+func (ctrl *Controllers) CreateStudent(c *gin.Context) {
+	var student repositories.Student
+	if err := c.BindJSON(&student); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	err := ctrl.Repo.CreateStudent(&student)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, student)
 }
 
-func CreateNotificationByHealthcareHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var appointmentData map[string]interface{}
+func (ctrl *Controllers) GetStudentByID(c *gin.Context) {
+	id := c.Param("id")
 
-		if err := c.ShouldBindJSON(&appointmentData); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		description := "Systematic check appointment details: "
-
-		if date, ok := appointmentData["date"].(string); ok {
-			description += "Date: " + date + ", "
-		}
-		if facultyName, ok := appointmentData["faculty_name"].(string); ok {
-			description += "Faculty: " + facultyName + ", "
-		}
-		if fieldOfStudy, ok := appointmentData["field_of_study"].(string); ok {
-			description += "Field of Study: " + fieldOfStudy + ", "
-		}
-		if descriptionText, ok := appointmentData["description"].(string); ok {
-			description += "Description: " + descriptionText
-		}
-
-		notification := repositories.Notification{
-			Title:     "New Appointment for Systematic Check Notification",
-			Content:   description,
-			CreatedAt: time.Now(),
-		}
-
-		if err := repositories.CreateNotification(client, &notification); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.Status(http.StatusOK)
+	student, err := ctrl.Repo.GetStudentByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
 	}
+
+	c.JSON(http.StatusOK, student)
 }
 
-func GetNotificationByIDHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		notificationID, err := primitive.ObjectIDFromHex(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
-			return
-		}
-
-		notification, err := repositories.GetNotificationByID(client, notificationID.Hex())
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
-			return
-		}
-
-		c.JSON(http.StatusOK, notification)
+func (ctrl *Controllers) UpdateStudent(c *gin.Context) {
+	id := c.Param("id")
+	var student repositories.Student
+	if err := c.BindJSON(&student); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	student.ID = objectID
+
+	err = ctrl.Repo.UpdateStudent(&student)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, student)
 }
 
-func GetAllNotificationsHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		notifications, err := repositories.GetAllNotifications(client)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+func (ctrl *Controllers) DeleteStudent(c *gin.Context) {
+	id := c.Param("id")
 
-		c.JSON(http.StatusOK, notifications)
+	err := ctrl.Repo.DeleteStudent(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
-func DeleteNotificationHandler(client *mongo.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		notificationID := c.Param("id")
 
-		err := repositories.DeleteNotification(client, notificationID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.Status(http.StatusOK)
+func (ctrl *Controllers) CreateProfessor(c *gin.Context) {
+	var professor repositories.Professor
+	if err := c.BindJSON(&professor); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	err := ctrl.Repo.CreateProfessor(&professor)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, professor)
+}
+
+func (ctrl *Controllers) GetProfessorByID(c *gin.Context) {
+	id := c.Param("id")
+
+	professor, err := ctrl.Repo.GetProfessorByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Professor not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, professor)
+}
+
+func (ctrl *Controllers) UpdateProfessor(c *gin.Context) {
+	id := c.Param("id")
+	var professor repositories.Professor
+	if err := c.BindJSON(&professor); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	professor.ID = objectID
+
+	err = ctrl.Repo.UpdateProfessor(&professor)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, professor)
+}
+
+func (ctrl *Controllers) DeleteProfessor(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteProfessor(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+func (ctrl *Controllers) CreateDepartment(c *gin.Context) {
+	var department repositories.Department
+	if err := c.BindJSON(&department); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateDepartment(&department)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, department)
+}
+
+func (ctrl *Controllers) GetDepartmentByID(c *gin.Context) {
+	id := c.Param("id")
+
+	department, err := ctrl.Repo.GetDepartmentByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Department not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, department)
+}
+
+func (ctrl *Controllers) UpdateDepartment(c *gin.Context) {
+	id := c.Param("id")
+	var department repositories.Department
+	if err := c.BindJSON(&department); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	department.ID = objectID
+
+	err = ctrl.Repo.UpdateDepartment(&department)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, department)
+}
+
+func (ctrl *Controllers) DeleteDepartment(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteDepartment(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+func (ctrl *Controllers) CreateUniversity(c *gin.Context) {
+	var university repositories.University
+	if err := c.BindJSON(&university); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateUniversity(&university)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, university)
+}
+
+func (ctrl *Controllers) GetUniversityByID(c *gin.Context) {
+	id := c.Param("id")
+
+	university, err := ctrl.Repo.GetUniversityByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "University not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, university)
+}
+
+func (ctrl *Controllers) UpdateUniversity(c *gin.Context) {
+	id := c.Param("id")
+	var university repositories.University
+	if err := c.BindJSON(&university); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	university.ID = objectID
+
+	err = ctrl.Repo.UpdateUniversity(&university)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, university)
+}
+
+func (ctrl *Controllers) DeleteUniversity(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteUniversity(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
