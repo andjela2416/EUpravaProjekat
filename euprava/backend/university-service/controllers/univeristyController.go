@@ -146,6 +146,71 @@ func (ctrl *Controllers) DeleteProfessor(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+func (ctrl *Controllers) CreateCourse(c *gin.Context) {
+	var course repositories.Course
+	if err := c.BindJSON(&course); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateCourse(&course)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, course)
+}
+
+func (ctrl *Controllers) GetCourseByID(c *gin.Context) {
+	id := c.Param("id")
+
+	course, err := ctrl.Repo.GetCourseByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, course)
+}
+
+func (ctrl *Controllers) UpdateCourse(c *gin.Context) {
+	id := c.Param("id")
+	var course repositories.Course
+	if err := c.BindJSON(&course); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	course.ID = objectID
+
+	err = ctrl.Repo.UpdateCourse(&course)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, course)
+}
+
+func (ctrl *Controllers) DeleteCourse(c *gin.Context) {
+	id := c.Param("id")
+
+	err := ctrl.Repo.DeleteCourse(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
 func (ctrl *Controllers) CreateDepartment(c *gin.Context) {
 	var department repositories.Department
 	if err := c.BindJSON(&department); err != nil {
