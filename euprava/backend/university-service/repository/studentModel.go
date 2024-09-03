@@ -101,6 +101,7 @@ type Exam struct {
 	Student  Student            `bson:"student" json:"student"`
 	Course   Course             `bson:"course" json:"course"`
 	ExamDate time.Time          `bson:"exam_date" json:"exam_date"`
+	Status   string             `bson:"status" json:"status"`
 }
 
 func (u *University) ToJSON(w io.Writer) error {

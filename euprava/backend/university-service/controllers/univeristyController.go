@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	repositories "university-service/repository"
 
@@ -147,6 +148,7 @@ func (ctrl *Controllers) DeleteProfessor(c *gin.Context) {
 }
 
 func (ctrl *Controllers) CreateCourse(c *gin.Context) {
+	fmt.Println("Hello, World!")
 	var course repositories.Course
 	if err := c.BindJSON(&course); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -404,6 +406,42 @@ func (ctrl *Controllers) DeleteExam(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNoContent, nil)
+}
+
+func (ctrl *Controllers) ManageExams(c *gin.Context) {
+	var exam repositories.Exam
+	if err := c.BindJSON(&exam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.CreateExam(&exam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, exam)
+}
+
+func (ctrl *Controllers) CancelExam(c *gin.Context) {
+	id := c.Param("id")
+
+	exam, err := ctrl.Repo.GetExamByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Exam not found"})
+		return
+	}
+
+	exam.Status = "canceled"
+
+	err = ctrl.Repo.UpdateExam(exam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exam canceled successfully"})
 }
 
 func (ctrl *Controllers) CreateAdministrator(c *gin.Context) {

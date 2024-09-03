@@ -36,6 +36,8 @@ func RegisterRoutes(router *gin.Engine, ctrl *controllers.Controllers) {
 	router.GET("/exams/:id", ctrl.GetExamByID)
 	router.PUT("/exams/:id", ctrl.UpdateExam)
 	router.DELETE("/exams/:id", ctrl.DeleteExam)
+	router.POST("/manage-exams", ctrl.ManageExams)
+	router.POST("/cancel-exam/:id", ctrl.CancelExam)
 
 	router.POST("/administrators/create", ctrl.CreateAdministrator)
 	router.GET("/administrators/:id", ctrl.GetAdministratorByID)
