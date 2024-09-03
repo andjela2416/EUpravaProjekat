@@ -9,9 +9,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type DormController struct {
@@ -47,13 +49,154 @@ func (dc DormController) GetStudentByID(studentId string) (*models.User, error) 
 	return returnedStudent, nil
 
 }
+func validateSelectionPeriod(date1, date2 string) error {
+
+	startDate, err := time.Parse("02-01-2006", date1)
+	if err != nil {
+		return fmt.Errorf("error parsing start date: %s", err.Error())
+	}
+	endDate, err := time.Parse("02-01-2006", date2)
+	if err != nil {
+		return fmt.Errorf("error parsing end date: %s", err.Error())
+	}
+
+	if startDate.Before(time.Now()) || endDate.Before(time.Now()) {
+		return fmt.Errorf("you cannot make a selection period in the past")
+	}
+	if !startDate.Before(endDate) {
+		return fmt.Errorf("end date date must be after start date")
+	}
+
+	duration := endDate.Sub(startDate)
+	dayDifference := int(duration.Hours() / 24)
+	if dayDifference < 14 {
+		return fmt.Errorf("the selection period must be at least two weeks")
+	}
+
+	return nil
+}
+
+func (dc *DormController) GetSelection() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		selectionId := id
+		if selectionId == "" {
+			c.JSON(http.StatusNotFound, gin.H{"error:": "selection id not found in token"})
+			return
+		}
+		app, err := dc.repo.GetSelection(selectionId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"database exception": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, app)
+		return
+
+	}
+}
+
+func (dc *DormController) InsertSelection() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var selection models.Selection
+		buildingid := c.Param("buildingId")
+
+		buildingObjectId, err := primitive.ObjectIDFromHex(buildingid)
+		selection.BuildingId = buildingObjectId
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid building ID"})
+			return
+		}
+		if err := c.BindJSON(&selection); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"parsing failed": selection})
+			dc.logger.Printf("json error")
+			return
+		}
+
+		err = validateSelectionPeriod(selection.StartDate, selection.EndDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
+			return
+		}
+
+		overlapErr := dc.repo.CheckSelectionOverlap(selection, false)
+		if overlapErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error:": overlapErr.Error()})
+			return
+		}
+
+		err, assignedId := dc.repo.InsertSelection(&selection)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		selection.Id = assignedId
+		c.JSON(http.StatusOK, gin.H{"Dorm selection period created": selection})
+		return
+	}
+}
+
+func (dc *DormController) UpdateSelection() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		selectionID := c.Param("id")
+
+		var selection models.Selection
+		objectId, err := primitive.ObjectIDFromHex(selectionID)
+		selection.Id = objectId
+
+		if err := c.ShouldBindJSON(&selection); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		err = validateSelectionPeriod(selection.StartDate, selection.EndDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error:": err.Error()})
+			return
+		}
+
+		overlapErr := dc.repo.CheckSelectionOverlap(selection, true)
+		if overlapErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error:": overlapErr.Error()})
+			return
+		}
+
+		err = dc.repo.UpdateSelection(selectionID, &selection)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Selection updated successfully"})
+	}
+}
+
+func (dc *DormController) DeleteSelection() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		selectionID := c.Param("id")
+
+		err := dc.repo.DeleteSelection(selectionID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Selection deleted successfully"})
+	}
+}
 func (dc *DormController) InsertApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		id, exists := c.Get("uid")
+		sid, exists := c.Get("sid")
 		studentId := id.(string)
+		selectionId := sid.(string)
+
 		if !exists {
-			c.JSON(http.StatusBadRequest, gin.H{"error: student id not found ": studentId})
+			c.JSON(http.StatusBadRequest, gin.H{"error: student/selection id not found ": studentId})
 			return
 		}
 		var application models.Application
@@ -68,7 +211,7 @@ func (dc *DormController) InsertApplication() gin.HandlerFunc {
 			return
 		}
 		application.User = student
-		if err = dc.repo.Insertapplications(&application); err != nil {
+		if err = dc.repo.InsertApp(application, selectionId); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"database exception": err.Error()})
 			return
 		}
@@ -80,7 +223,7 @@ func (dc *DormController) InsertApplication() gin.HandlerFunc {
 func (dc *DormController) GetAllApplications() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		apps, err := dc.repo.GetAllapplications()
+		apps, err := dc.repo.GetAllApplications()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"database exception": err.Error()})
 			return
@@ -92,13 +235,16 @@ func (dc *DormController) GetAllApplications() gin.HandlerFunc {
 func (dc *DormController) GetApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, exists := c.Get("uid")
+		sid, exists := c.Get("sid")
 		studentId := id.(string)
+		selectionId := sid.(string)
+
 		if !exists {
-			c.JSON(http.StatusNotFound, gin.H{"error: student id not found in token": studentId})
+			c.JSON(http.StatusNotFound, gin.H{"error: student/selection id not found in token": studentId})
 			return
 		}
 
-		app, err := dc.repo.GetApplication(studentId)
+		app, err := dc.repo.GetApplication(studentId, selectionId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"database exception": err.Error()})
 			return
@@ -109,7 +255,7 @@ func (dc *DormController) GetApplication() gin.HandlerFunc {
 	}
 }
 
-//func (dc DormController) ProcessApplications() error {
+//func (dc DormController) ProcessApplications(selection Selection) error {
 // select all pending applications, rank them,
 //accept the first n number of them based on how many spaces there are
 //assign students to random non-full rooms

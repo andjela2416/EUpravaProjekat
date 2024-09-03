@@ -89,17 +89,173 @@ func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collecti
 	return collection
 }
 
-func (dr *DormRepo) GetApplication(studentid string) (*models.Application, error) {
+func (dr *DormRepo) GetApplication(studentid string, selectionid string) (*models.Application, error) {
 
 	var app models.Application
-	appsCollection := OpenCollection(dr.cli, "applications")
+	selCollection := OpenCollection(dr.cli, "selections")
+	studentObjectId, err := primitive.ObjectIDFromHex(studentid)
+	selectionObjectid, err := primitive.ObjectIDFromHex(selectionid)
 
-	err := appsCollection.FindOne(context.Background(), bson.M{"student.student_id": studentid}).Decode(&app)
 	if err != nil {
-		return nil, fmt.Errorf("No applications not found for student id: %s", studentid)
+		return nil, fmt.Errorf("invalid ID: %v", err)
+	}
+
+	var selection models.Selection
+	filter := bson.M{"_id": selectionObjectid}
+	err = selCollection.FindOne(context.Background(), filter).Decode(&selection)
+	if err != nil {
+		return nil, fmt.Errorf("selection with ID %s not found", selectionid)
+	}
+
+	for _, app := range selection.Applications {
+		if app.User.ID == studentObjectId {
+			return app, nil
+		}
 	}
 
 	return &app, nil
+}
+
+func (dr *DormRepo) GetSelection(selectionID string) (*models.Selection, error) {
+
+	var selection models.Selection
+	selCollection := OpenCollection(dr.cli, "selections")
+	objectId, err := primitive.ObjectIDFromHex(selectionID)
+
+	err = selCollection.FindOne(context.Background(), bson.M{"_id": objectId}).Decode(&selection)
+	if err != nil {
+		return nil, fmt.Errorf("No selections not found for id: %s", selectionID)
+	}
+
+	return &selection, nil
+}
+
+func (dr *DormRepo) InsertSelection(selection *models.Selection) (error, primitive.ObjectID) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+	selCollection := OpenCollection(dr.cli, "selections")
+	selection.Id = primitive.NewObjectID()
+	result, err := selCollection.InsertOne(ctx, &selection)
+	if err != nil {
+		dr.logger.Println(err)
+		return err, primitive.NewObjectID()
+	}
+	dr.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	return nil, selection.Id
+}
+
+func (dr *DormRepo) UpdateSelection(selectionID string, selection *models.Selection) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	selCollection := OpenCollection(dr.cli, "selections")
+	objectId, err := primitive.ObjectIDFromHex(selectionID)
+	if err != nil {
+		return fmt.Errorf("Invalid ID: %v", err)
+	}
+
+	updateData := bson.M{
+		"$set": bson.M{
+			"startdate":    selection.StartDate,
+			"enddate":      selection.EndDate,
+			"buildingId":   selection.BuildingId,
+			"applications": selection.Applications,
+		},
+	}
+
+	result, err := selCollection.UpdateOne(ctx, bson.M{"_id": objectId}, updateData)
+	if err != nil {
+		return fmt.Errorf("Could not update selection with id: %s, error: %v", selectionID, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("No selection found with id: %s", selectionID)
+	}
+
+	dr.logger.Printf("Updated selection with id: %s", selectionID)
+	return nil
+}
+
+func (dr *DormRepo) DeleteSelection(selectionID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	selCollection := OpenCollection(dr.cli, "selections")
+	objectId, err := primitive.ObjectIDFromHex(selectionID)
+	if err != nil {
+		return fmt.Errorf("Invalid ID: %v", err)
+	}
+
+	result, err := selCollection.DeleteOne(ctx, bson.M{"_id": objectId})
+	if err != nil {
+		return fmt.Errorf("Could not delete selection with id: %s, error: %v", selectionID, err)
+	}
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("No selection found with id: %s", selectionID)
+	}
+
+	dr.logger.Printf("Deleted selection with id: %s", selectionID)
+	return nil
+}
+
+func (dr *DormRepo) CheckSelectionOverlap(selection models.Selection, isUpdate bool) error {
+	selectionCollection := OpenCollection(dr.cli, "selections")
+
+	currentStartDate, err := time.Parse("02-01-2006", selection.StartDate)
+	if err != nil {
+		return fmt.Errorf("invalid start date format: %v", err)
+	}
+	currentEndDate, err := time.Parse("02-01-2006", selection.EndDate)
+	if err != nil {
+		return fmt.Errorf("invalid end date format: %v", err)
+	}
+
+	dr.logger.Printf("parsed dates in overlap")
+	now := time.Now()
+
+	filter := bson.M{
+		"startdate":  bson.M{"$gte": now.Format("02-01-2006")},
+		"buildingId": selection.BuildingId,
+	}
+	if isUpdate {
+		filter = bson.M{
+			"startdate":  bson.M{"$gte": now.Format("02-01-2006")},
+			"buildingId": selection.BuildingId,
+			"_id":        bson.M{"$ne": selection.Id},
+		}
+	}
+	cursor, err := selectionCollection.Find(context.Background(), filter)
+	if err != nil {
+		return fmt.Errorf("error querying selections: %v", err)
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var otherSelection models.Selection
+		if err := cursor.Decode(&otherSelection); err != nil {
+			return fmt.Errorf("error decoding selection: %v", err)
+		}
+
+		otherStartDate, err := time.Parse("02-01-2006", otherSelection.StartDate)
+		if err != nil {
+			return fmt.Errorf("invalid start date format in other selection: %v", err)
+		}
+		otherEndDate, err := time.Parse("02-01-2006", otherSelection.EndDate)
+		if err != nil {
+			return fmt.Errorf("invalid end date format in other selection: %v", err)
+		}
+		dr.logger.Printf("parsed other dates in overlap")
+
+		if (currentStartDate.Before(otherEndDate) && currentEndDate.After(otherStartDate)) ||
+			(otherStartDate.Before(currentEndDate) && otherEndDate.After(currentStartDate) ||
+				currentStartDate.Equal(otherStartDate) || currentStartDate.Equal(otherEndDate) ||
+				currentEndDate.Equal(otherStartDate) || currentEndDate.Equal(otherEndDate)) {
+			dr.logger.Printf("should return an error in overlap")
+			return fmt.Errorf("The date you selected overlaps with already existing ones: %s - %s", otherStartDate.String(), otherEndDate.String())
+		}
+	}
+
+	return nil
 }
 
 func (dr *DormRepo) Insertapplications(application *models.Application) error {
@@ -117,23 +273,99 @@ func (dr *DormRepo) Insertapplications(application *models.Application) error {
 	return nil
 }
 
-func (dr *DormRepo) GetAllapplications() (*models.Application, error) {
+func (dr *DormRepo) InsertApp(app models.Application, selectionId string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	selCollection := OpenCollection(dr.cli, "selections")
+
+	buildingObjectId, err := primitive.ObjectIDFromHex(selectionId)
+	if err != nil {
+		return fmt.Errorf("invalid building ID: %v", err)
+	}
+
+	selection, err := dr.GetSelection(selectionId)
+	if err != nil {
+		return fmt.Errorf("failed to get building: %v", err)
+	}
+
+	app.Status = "Pending"
+
+	selection.Applications = append(selection.Applications, &app)
+
+	_, err = selCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": buildingObjectId},
+		bson.M{"$set": bson.M{"applications": selection.Applications}},
+	)
+	if err != nil {
+		return fmt.Errorf("error updating building: %v", err)
+	}
+
+	return nil
+}
+
+func (dr *DormRepo) DeleteApp(appUserID string, selectionId string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	selCollection := OpenCollection(dr.cli, "selections")
+
+	selectionObjectId, err := primitive.ObjectIDFromHex(selectionId)
+	if err != nil {
+		return fmt.Errorf("invalid selection ID: %v", err)
+	}
+
+	selection, err := dr.GetSelection(selectionId)
+	if err != nil {
+		return fmt.Errorf("failed to get selection: %v", err)
+	}
+
+	// Find and remove the application with the given user ID
+	var updatedApplications []*models.Application
+	appFound := false
+	for _, app := range selection.Applications {
+		if app.User != nil && app.User.ID.Hex() == appUserID {
+			appFound = true
+		} else {
+			updatedApplications = append(updatedApplications, app)
+		}
+	}
+
+	if !appFound {
+		return fmt.Errorf("no application found with user ID: %s", appUserID)
+	}
+
+	// Update the selection with the modified applications
+	_, err = selCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": selectionObjectId},
+		bson.M{"$set": bson.M{"applications": updatedApplications}},
+	)
+	if err != nil {
+		return fmt.Errorf("error updating selection: %v", err)
+	}
+
+	return nil
+}
+
+func (dr *DormRepo) GetAllApplications() ([]*models.Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	appsCollection := OpenCollection(dr.cli, "applications")
 
-	var apps models.Application
-	roomCursor, err := appsCollection.Find(ctx, bson.M{})
+	var apps []*models.Application
+	appCursor, err := appsCollection.Find(ctx, bson.M{})
 	if err != nil {
 		dr.logger.Println(err)
 		return nil, err
 	}
-	if err = roomCursor.All(ctx, &apps); err != nil {
+	if err = appCursor.All(ctx, &apps); err != nil {
 		dr.logger.Println(err)
 		return nil, err
 	}
-	return &apps, nil
+	return apps, nil
 }
 
 func (dr *DormRepo) InsertBuilding(building models.Building) (error, primitive.ObjectID) {
@@ -218,27 +450,22 @@ func (dr *DormRepo) InsertRoom(insertedCapacity int, insertedBuildingId string) 
 	buildingCollection := OpenCollection(dr.cli, "buildings")
 	var room models.Room
 
-	// Convert string ID to ObjectID
 	buildingObjectId, err := primitive.ObjectIDFromHex(insertedBuildingId)
 	if err != nil {
 		return fmt.Errorf("invalid building ID: %v", err)
 	}
 
-	// Get the building
 	building, err := dr.GetBuilding(insertedBuildingId)
 	if err != nil {
 		return fmt.Errorf("failed to get building: %v", err)
 	}
 
-	// Set room properties
 	room.Room_Number = len(building.Rooms) + 1
 	room.Building_Id = buildingObjectId
 	room.Capacity = insertedCapacity
 
-	// Update the building's rooms slice
 	building.Rooms = append(building.Rooms, &room)
 
-	// Update the building document in MongoDB
 	_, err = buildingCollection.UpdateOne(
 		ctx,
 		bson.M{"_id": buildingObjectId},
@@ -252,17 +479,25 @@ func (dr *DormRepo) InsertRoom(insertedCapacity int, insertedBuildingId string) 
 }
 
 func (dr *DormRepo) GetRoom(number int, buildingId string) (*models.Room, error) {
-	var room models.Room
 	buildingCollection := OpenCollection(dr.cli, "buildings")
-	filter := bson.M{
-		"rooms.room_number": number,
-		"_id":               buildingId,
-	}
 
-	err := buildingCollection.FindOne(context.Background(), filter).Decode(&room)
+	buildingObjectId, err := primitive.ObjectIDFromHex(buildingId)
 	if err != nil {
-		return nil, fmt.Errorf("room #%d in building %s not found", number, buildingId)
+		return nil, fmt.Errorf("invalid building ID: %v", err)
 	}
 
-	return &room, nil
+	var building models.Building
+	filter := bson.M{"_id": buildingObjectId}
+	err = buildingCollection.FindOne(context.Background(), filter).Decode(&building)
+	if err != nil {
+		return nil, fmt.Errorf("building with ID %s not found", buildingId)
+	}
+
+	for _, room := range building.Rooms {
+		if room.Room_Number == number {
+			return room, nil
+		}
+	}
+
+	return nil, fmt.Errorf("room #%d in building %s not found", number, buildingId)
 }

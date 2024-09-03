@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -40,21 +39,16 @@ func Authentication() gin.HandlerFunc {
 func AuthorizeRoles(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_type, _ := c.Get("user_type")
-		l := log.New(gin.DefaultWriter, "auth: ", log.LstdFlags)
 		userRole := user_type.(string)
-		l.Printf("User role: %s", userRole)
 		authorized := false
 		for _, role := range roles {
-			l.Printf("Comparing: %s and %s", userRole, role)
 			if userRole == role {
-				l.Printf("%s and %s are the same", userRole, role)
 				authorized = true
 				break
 			}
 		}
 
 		if !authorized {
-			l.Printf("Access forbidden to role %s", userRole)
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 			return
 		}

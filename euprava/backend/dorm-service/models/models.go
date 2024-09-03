@@ -18,14 +18,11 @@ type User struct {
 }
 
 type Student struct {
-	Uid         string     `json:"uid"`
-	FirstName   string     `json:"first_name"`
-	LastName    string     `json:"last_name"`
-	FinanceType string     `json:"finance_type"`
-	StudyInfo   *StudyInfo `json:"study_info"`
-}
-
-type StudyInfo struct {
+	Uid           string  `json:"uid"`
+	FirstName     string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
+	Scholarship   bool    `json:"scholarship"`
+	AssignedDorm  string  `json:"assigned_dorm"`
 	HighschoolGPA float64 `json:"highschool_gpa"`
 	GPA           float64 `json:"gpa"`
 	ESBP          int     `json:"esbp"`
@@ -33,13 +30,17 @@ type StudyInfo struct {
 }
 
 type Application struct {
-	Status string `json:"status"` //accepted / rejected / pending
-	User   *User  `json:"user"`
+	Id     primitive.ObjectID `bson:"_id"`
+	Status string             `json:"status"` //accepted / rejected / pending
+	User   *User              `json:"user"`
 }
 
 type Selection struct {
-	StartDate string `json:"start_date"`
-	EndDate   string `json:"end_date"`
+	Id           primitive.ObjectID `bson:"_id"`
+	StartDate    string             `json:"start_date"`
+	EndDate      string             `json:"end_date"`
+	BuildingId   primitive.ObjectID `json:"buildingId" bson:"buildingId"`
+	Applications Applications       `json:"applications,omitempty" bson:"applications,omitempty"`
 }
 
 type Building struct {
@@ -58,6 +59,7 @@ type Room struct {
 
 type Students []*Student
 type Rooms []*Room
+type Applications []*Application
 
 func (o *Students) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
@@ -65,6 +67,11 @@ func (o *Students) ToJSON(w io.Writer) error {
 }
 
 func (o *Rooms) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *Applications) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(o)
 }
