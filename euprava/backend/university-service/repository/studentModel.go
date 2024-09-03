@@ -87,10 +87,13 @@ type User struct {
 
 type Student struct {
 	User
-	Major        string `bson:"major" json:"major"`
-	YearOfStudy  int    `bson:"year_of_study" json:"year_of_study"`
-	AssignedDorm string `bson:"assigned_dorm" json:"assigned_dorm"`
-	Scholarship  bool   `bson:"scholarship" json:"scholarship"`
+	Major         string  `bson:"major" json:"major"`
+	Year          int     `bson:"year" json:"year"`
+	AssignedDorm  string  `bson:"assigned_dorm" json:"assigned_dorm"`
+	Scholarship   bool    `bson:"scholarship" json:"scholarship"`
+	HighschoolGPA float64 `bson:"highschool_gpa" json:"highschool_gpa"`
+	GPA           float64 `bson:"gpa" json:"gpa"`
+	ESBP          int     `bson:"esbp" json:"esbp"`
 }
 
 type Exam struct {
