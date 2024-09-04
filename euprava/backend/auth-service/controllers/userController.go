@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,6 +38,28 @@ func HashPassword(password string) string {
 	}
 
 	return string(bytes)
+}
+
+func GetLoggedInUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			return
+		}
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var user models.User
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, user)
+	}
 }
 
 func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
@@ -77,11 +101,9 @@ func Register() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email"})
 			return
 		}
-
 		password := HashPassword(*user.Password)
 		user.Password = &password
-
-		count, err := userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
+		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -204,7 +226,7 @@ func Login() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": ""})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -219,7 +241,6 @@ func Login() gin.HandlerFunc {
 		defer cancel()
 		if !passwordIsValid {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password"})
-
 			return
 		}
 
@@ -227,6 +248,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
 			return
 		}
+
 		token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
 
 		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
@@ -234,26 +256,61 @@ func Login() gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
 			return
 		}
 
-		c.JSON(http.StatusOK, foundUser)
+		err = sendUserToHealthcareService(foundUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with healthcare service"})
+			return
+		}
 
+		c.JSON(http.StatusOK, gin.H{
+			"user":          foundUser,
+			"token":         token,
+			"refresh_token": refreshToken,
+		})
 	}
+}
+
+func sendUserToHealthcareService(user models.User) error {
+	healthcareURL := fmt.Sprintf("http://healthcare_service:8004/loggedUser")
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("Failed to marshal user: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", healthcareURL, bytes.NewBuffer(userJSON))
+	if err != nil {
+		return fmt.Errorf("Failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	println("lola", user.ID.String())
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	println("lolaNA")
+	if err != nil {
+		print("failed", err)
+		return fmt.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	println("lola????")
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Healthcare service returned non-200 status: %v", resp.Status)
+	}
+
+	return nil
 }
 
 func Logout() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
-		refreshToken := helper.ExtractRefreshToken(c)
-		l.Println("primljen je: ", c.GetString("Authorization"))
-		if refreshToken == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "no refersh token found"})
-		} else {
-
-			c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
-		}
+		c.Set("userID", "")
+		c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
 	}
 }
 

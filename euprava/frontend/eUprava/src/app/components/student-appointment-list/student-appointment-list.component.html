@@ -1,0 +1,26 @@
+<!-- appointment-list.component.html -->
+
+<div class="appointment-table-container">
+  <table class="appointment-table">
+    <thead>
+    <tr>
+      <th class="date-column">Date</th>
+      <th>Doctor</th>
+      <th>Door Number</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let appointment of appointments">
+      <td class="date-column">{{ appointment.date | date: 'short' }}</td>
+      <td>{{ appointment.student || 'null' }}</td>
+      <td>{{ appointment.door_number }}</td>
+      <td>{{ appointment.description || 'null' }}</td>
+      <td>
+        <button class="button" (click)="scheduleAppointment(appointment.id)">Zakazi</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

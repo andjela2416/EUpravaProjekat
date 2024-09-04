@@ -1,0 +1,39 @@
+<div class="appointment-update-container">
+  <h2>Update Appointment</h2>
+  <form [formGroup]="appointmentForm" (ngSubmit)="updateAppointment()">
+    <div>
+      <label for="date">Date</label>
+      <input id="date" formControlName="date" type="date">
+    </div>
+    <div>
+      <label for="time">Time</label>
+      <input id="time" formControlName="time" type="time">
+    </div>
+    <div>
+      <label for="door_number">Door Number</label>
+      <input id="door_number" formControlName="door_number" type="number">
+    </div>
+    <div>
+      <label for="description">Description</label>
+      <textarea id="description" formControlName="description"></textarea>
+    </div>
+    <div>
+      <label for="systematic" class="label-right">Systematic</label>
+      <input id="systematic" formControlName="systematic" type="checkbox" class="align-right">
+    </div>
+    <div>
+      <label for="faculty_name">Faculty Name</label>
+      <input id="faculty_name" formControlName="faculty_name" type="text">
+    </div>
+    <div>
+      <label for="field_of_study">Field of Study</label>
+      <input id="field_of_study" formControlName="field_of_study" type="text">
+    </div>
+    <div>
+      <label for="reserved" class="label-right">Reserved</label>
+      <input id="reserved" formControlName="reserved" type="checkbox" class="align-right">
+    </div>
+
+    <button type="submit" [disabled]="!appointmentForm.valid">Update</button>
+  </form>
+</div>

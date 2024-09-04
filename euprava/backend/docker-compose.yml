@@ -20,6 +20,10 @@ services:
       FOOD_DB_PORT: ${FOOD_DB_PORT}
       FOOD_SERVICE_PORT: ${FOOD_SERVICE_PORT}
       FOOD_SERVICE_HOST: ${FOOD_SERVICE_HOST}
+      UNIVERSITY_DB_HOST: ${UNIVERSITY_DB_HOST}
+      UNIVERSITY_DB_PORT: ${UNIVERSITY_DB_PORT}
+      UNIVERSITY_SERVICE_PORT: ${UNIVERSITY_SERVICE_PORT}
+      UNIVERSITY_SERVICE_HOST: ${UNIVERSITY_SERVICE_HOST}
     depends_on:
       - healthcare_db
     networks:
@@ -128,12 +132,11 @@ services:
       context: ./university-service
     restart: always
     container_name: university-service
-    hostname: "university-service"
     ports:
       - 8088:8088
     environment:
       - PORT=8088
-      - MONGO_DB_URI=mongodb://root:pass@profile_data_base:27017
+      - MONGO_DB_URI=mongodb://root:pass@university_data_base:27017
     networks:
       - network
 
@@ -157,23 +160,7 @@ services:
       - university_data_base:/data/db
     networks:
       - network
-
-  # keycloak:
-  #   image: jboss/keycloak:latest
-  #   container_name: keycloak
-  #   build:
-  #     context: .
-  #   environment:
-  #     - KEYCLOAK_USER=admin
-  #     - KEYCLOAK_PASSWORD=admin
-  #     - KEYCLOAK_CLIENT_ID=euprava
-  #     - KEYCLOAK_CLIENT_SECRET=dz0a1vY7Jqgbw59W0KiZs1rffuHB2a1t
-  #     - KEYCLOAK_REDIRECT_URL=http://localhost:8080/callback
-  #   volumes:
-  #     - ./.containers/keycloak:/opt/jboss/keycloak/standalone/data
-  #   ports:
-  #     - 18080:8080
-
+      
   healthcare_db:
     image: mongo
     container_name: healthcare_db
