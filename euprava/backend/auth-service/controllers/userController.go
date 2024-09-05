@@ -103,7 +103,7 @@ func Register() gin.HandlerFunc {
 		}
 		password := HashPassword(*user.Password)
 		user.Password = &password
-		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
+		count, err := userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -130,9 +130,32 @@ func Register() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 			return
 		}
+
+		if err = RegisterIntoUni(&user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error: unable to insert user into university. ": err.Error()})
+		}
+
 		c.JSON(http.StatusOK, resultInsertionNumber)
 		defer cancel()
 	}
+}
+
+func RegisterIntoUni(user *models.User) error {
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
 }
 
 // func Register() gin.HandlerFunc {
