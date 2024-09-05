@@ -1,0 +1,26 @@
+<div class="systematic-checkup">
+  <h2 style="text-align: center">Kreiranje Sistematskog Pregleda</h2>
+  <form [formGroup]="checkupForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="date">Datum:</label>
+      <input type="datetime-local" id="date" formControlName="date">
+    </div>
+    <div>
+      <label for="doorNumber">Broj Ordinacije:</label>
+      <input type="number" id="doorNumber" formControlName="doorNumber">
+    </div>
+    <div>
+      <label for="description">Opis:</label>
+      <textarea id="description" formControlName="description"></textarea>
+    </div>
+    <div>
+      <label for="faculty_name">Ime fakulteta:</label>
+      <input type="text" id="faculty_name" formControlName="faculty_name">
+    </div>
+    <div>
+      <label for="field_of_study">Smer:</label>
+      <input type="text" id="field_of_study" formControlName="field_of_study">
+    </div>
+    <button type="submit" [disabled]="!checkupForm.valid">Kreiraj Pregled</button>
+  </form>
+</div>
