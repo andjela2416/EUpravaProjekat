@@ -103,9 +103,6 @@ func main() {
 
 	router.HandleFunc("/healthrecords", healthCareHandler.GetHealthRecordByID).Methods(http.MethodGet)
 
-	loggedUser := router.Methods(http.MethodPost).Subrouter()
-	loggedUser.HandleFunc("/loggedUser", healthCareHandler.LoginHandler)
-	loggedUser.Use(healthCareHandler.MiddlewareAuthUserDeserialization)
 	// Inicijalizacija HTTP servera
 	server := http.Server{
 		Addr:         ":" + port,

@@ -22,68 +22,6 @@ func NewHealthCareHandler(l *log.Logger, r *data.HealthCareRepo) *HealthCareHand
 	return &HealthCareHandler{l, r}
 }
 
-// GetLoggedUserIDHandler rukuje zahtevom za preuzimanje ID-a ulogovanog korisnika iz sesije.
-func (h *HealthCareHandler) GetLoggedUserIDHandler(rw http.ResponseWriter, r *http.Request) {
-	userID, err := h.healthCareRepo.GetLoggedUserFromSession(r)
-	if err != nil {
-		h.logger.Println("Error retrieving logged user ID from session:", err)
-		http.Error(rw, "Error retrieving user ID from session", http.StatusInternalServerError)
-		return
-	}
-
-	if userID == "" {
-		http.Error(rw, "User ID not found in session", http.StatusNotFound)
-		return
-	}
-
-	// Vraćanje ID-a korisnika kao odgovor
-	rw.WriteHeader(http.StatusOK)
-	rw.Write([]byte(userID))
-}
-
-func (h *HealthCareHandler) LoginHandler(rw http.ResponseWriter, r *http.Request) {
-	//var user data.AuthUser
-
-	user := r.Context().Value(KeyProduct{}).(*data.AuthUser)
-	/*err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		h.logger.Println("Error decoding user from request body:", err)
-		http.Error(rw, "Invalid user data", http.StatusBadRequest)
-		return
-	}*/
-
-	// Proveravanje da li korisnik ima ID
-	if user.ID.String() == "" {
-		h.logger.Println("User ID is missing in the request body")
-		http.Error(rw, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Postavljanje ID-a korisnika u sesiju
-	err := h.healthCareRepo.SetUserInSession(rw, r, user)
-	if err != nil {
-		h.logger.Println("Error setting user ID in session:", err)
-		http.Error(rw, "Could not set session", http.StatusInternalServerError)
-		return
-	}
-
-	// Uspešna prijava, preusmeravanje ili slanje odgovora
-	//http.Redirect(rw, r, "/home", http.StatusSeeOther)
-	rw.WriteHeader(http.StatusOK)
-}
-
-// LogoutUser izlazi iz sesije.
-func (h *HealthCareHandler) LogoutUser(rw http.ResponseWriter, r *http.Request) {
-	err := h.healthCareRepo.LogoutUser(rw, r)
-	if err != nil {
-		h.logger.Println("Error logging out user:", err)
-		http.Error(rw, "Error logging out user", http.StatusInternalServerError)
-		return
-	}
-
-	rw.WriteHeader(http.StatusOK)
-}
-
 // mongo
 func (r *HealthCareHandler) InsertUser(rw http.ResponseWriter, h *http.Request) {
 	user := h.Context().Value(KeyProduct{}).(*data.User)
