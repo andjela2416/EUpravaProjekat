@@ -16,6 +16,7 @@ import { StudentAppointmentManagementComponent } from './components/student-appo
 import { StudentAppointmentListComponent } from './components/student-appointment-list/student-appointment-list.component';
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { CreateFoodComponent } from './components/foodservicefront/create-food/create-food.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
     StudentCancelAppointmentListComponent,
-    NavbarComponent
+    NavbarComponent,
+    CreateFoodComponent
   ],
   imports: [
     BrowserModule,
