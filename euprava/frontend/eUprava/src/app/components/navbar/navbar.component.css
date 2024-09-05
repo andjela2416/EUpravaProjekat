@@ -1,35 +1,86 @@
+/* Stilovi za navigacioni bar */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background-color: #434c55;
+  background-color: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #e1e1e1;
 }
 
 .navbar-brand {
   font-size: 1.5rem;
-  color: white;
+  font-weight: bold;
   text-decoration: none;
+  color: #333;
+}
+
+.navbar-toggler {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Stilovi za navigacioni meni */
+.navbar-menu {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .navbar-nav {
-  list-style-type: none;
   display: flex;
-  gap: 2rem;
-  margin: 0;
+  list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .nav-item {
-  display: inline;
+  margin-right: 1rem;
 }
 
 .nav-link {
-  color: white;
   text-decoration: none;
-  font-size: 1.5rem;
+  color: #007bff;
+  font-weight: 500;
 }
 
 .nav-link:hover {
   text-decoration: underline;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Stilovi za responzivnost */
+@media (max-width: 768px) {
+  .navbar-toggler {
+    display: block;
+  }
+
+  .navbar-menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .navbar-menu.active {
+    display: flex;
+  }
+
+  .nav-item {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
 }

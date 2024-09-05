@@ -10,10 +10,11 @@ import { TherapyCreateComponent } from './components/create-therapy/create-thera
 import { StudentAppointmentManagementComponent } from './components/student-appointment-management/student-appointment-management.component';
 import { StudentAppointmentListComponent } from './components/student-appointment-list/student-appointment-list.component';
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
+import {LoginComponent} from "./components/login/login.component";
+import {RegisterComponent} from "./components/register/register.component";
 
 const routes: Routes = [
   { path: 'create-appointment', component: CreateAppointmentComponent },
-  { path: '', component: AppointmentManagementComponent },
   { path: 'student-appointment-management', component: StudentAppointmentManagementComponent },
   { path: 'student-appointment-list', component: StudentAppointmentListComponent },
   { path: 'create-systematicCheck', component: SystematicCheckupComponent },
@@ -22,6 +23,10 @@ const routes: Routes = [
   { path: 'update-appointment-list', component: AppointmentListUpdateComponent },
   { path: 'create-therapy', component: TherapyCreateComponent },
   { path: 'cancel-appointment', component: StudentCancelAppointmentListComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'appointment-management', component: AppointmentManagementComponent },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
 ];
 
 

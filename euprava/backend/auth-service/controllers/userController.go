@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -175,52 +173,12 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		err = sendUserToHealthcareService(foundUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with healthcare service"})
-			return
-		}
-
 		c.JSON(http.StatusOK, gin.H{
 			"user":          foundUser,
 			"token":         token,
 			"refresh_token": refreshToken,
 		})
 	}
-}
-
-func sendUserToHealthcareService(user models.User) error {
-	healthcareURL := fmt.Sprintf("http://healthcare_service:8004/loggedUser")
-
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal user: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", healthcareURL, bytes.NewBuffer(userJSON))
-	if err != nil {
-		return fmt.Errorf("Failed to create request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	println("lola", user.ID.String())
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	println("lolaNA")
-	if err != nil {
-		print("failed", err)
-		return fmt.Errorf("Failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	println("lola????")
-
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Healthcare service returned non-200 status: %v", resp.Status)
-	}
-
-	return nil
 }
 
 func Logout() gin.HandlerFunc {

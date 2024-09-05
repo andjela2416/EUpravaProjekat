@@ -16,6 +16,8 @@ import { StudentAppointmentManagementComponent } from './components/student-appo
 import { StudentAppointmentListComponent } from './components/student-appointment-list/student-appointment-list.component';
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import {LoginComponent} from "./components/login/login.component";
+import {RegisterComponent} from "./components/register/register.component";
 
 @NgModule({
   declarations: [
@@ -30,7 +32,6 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
     StudentCancelAppointmentListComponent,
-    NavbarComponent
   ],
   imports: [
     BrowserModule,
@@ -38,7 +39,10 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    NavbarComponent,
+    LoginComponent,
+    RegisterComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
