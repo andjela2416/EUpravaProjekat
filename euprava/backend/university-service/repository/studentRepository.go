@@ -544,3 +544,53 @@ func (r *Repository) GetAllAssistants() ([]Assistant, error) {
 
 	return assistants, nil
 }
+
+func (r *Repository) RegisterExam(exam *Exam) error {
+	collection := r.getCollection("exams")
+	_, err := collection.InsertOne(context.TODO(), exam)
+	return err
+}
+
+func (r *Repository) DeregisterExam(studentID, courseID primitive.ObjectID) error {
+	collection := r.getCollection("exams")
+	_, err := collection.DeleteOne(context.TODO(), bson.M{"student._id": studentID, "course._id": courseID})
+	return err
+}
+
+func (r *Repository) GetExamCalendar() ([]Exam, error) {
+	collection := r.getCollection("exams")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var exams []Exam
+	if err = cursor.All(context.TODO(), &exams); err != nil {
+		return nil, err
+	}
+
+	return exams, nil
+}
+
+func (r *Repository) GetLectures() ([]Course, error) {
+	collection := r.getCollection("courses")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var lectures []Course
+	if err = cursor.All(context.TODO(), &lectures); err != nil {
+		return nil, err
+	}
+
+	return lectures, nil
+}
+
+func (r *Repository) PayTuition(payment *TuitionPayment) error {
+	collection := r.getCollection("tuitionPayments")
+	_, err := collection.InsertOne(context.TODO(), payment)
+	return err
+}

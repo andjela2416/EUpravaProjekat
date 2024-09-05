@@ -653,3 +653,77 @@ func (ctrl *Controllers) GetAllAssistants(c *gin.Context) {
 
 	c.JSON(http.StatusOK, assistants)
 }
+
+func (ctrl *Controllers) RegisterExam(c *gin.Context) {
+	var exam repositories.Exam
+	if err := c.BindJSON(&exam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.RegisterExam(&exam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Exam registered successfully!"})
+}
+
+func (ctrl *Controllers) DeregisterExam(c *gin.Context) {
+	studentID, err := primitive.ObjectIDFromHex(c.Param("studentID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid student ID"})
+		return
+	}
+
+	courseID, err := primitive.ObjectIDFromHex(c.Param("courseID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		return
+	}
+
+	err = ctrl.Repo.DeregisterExam(studentID, courseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exam deregistered successfully!"})
+}
+
+func (ctrl *Controllers) GetExamCalendar(c *gin.Context) {
+	exams, err := ctrl.Repo.GetExamCalendar()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, exams)
+}
+
+func (ctrl *Controllers) GetLectures(c *gin.Context) {
+	lectures, err := ctrl.Repo.GetLectures()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, lectures)
+}
+
+func (ctrl *Controllers) PayTuition(c *gin.Context) {
+	var payment repositories.TuitionPayment
+	if err := c.BindJSON(&payment); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.Repo.PayTuition(&payment)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Tuition payment successful!"})
+}

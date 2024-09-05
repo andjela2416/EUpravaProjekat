@@ -57,4 +57,10 @@ func RegisterRoutes(router *gin.Engine, ctrl *controllers.Controllers) {
 	router.GET("/exams", ctrl.GetAllExams)
 	router.GET("/administrators", ctrl.GetAllAdministrators)
 	router.GET("/assistants", ctrl.GetAllAssistants)
+
+	router.POST("/exams/register", ctrl.RegisterExam)
+	router.DELETE("/exams/deregister/:studentID/:courseID", ctrl.DeregisterExam)
+	router.GET("/exams/calendar", ctrl.GetExamCalendar)
+	router.GET("/lectures", ctrl.GetLectures)
+	router.POST("/tuition/pay", ctrl.PayTuition)
 }

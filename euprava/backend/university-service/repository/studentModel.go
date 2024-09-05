@@ -104,6 +104,13 @@ type Exam struct {
 	Status   string             `bson:"status" json:"status"`
 }
 
+type TuitionPayment struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	StudentID primitive.ObjectID `bson:"student_id" json:"student_id"`
+	Amount    float64            `bson:"amount" json:"amount"`
+	Date      time.Time          `bson:"date" json:"date"`
+}
+
 func (u *University) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(u)
