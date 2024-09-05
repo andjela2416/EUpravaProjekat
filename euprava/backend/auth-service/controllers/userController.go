@@ -68,7 +68,7 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 	msg := ""
 
 	if err != nil {
-		msg = fmt.Sprintf("login or passowrd is incorrect")
+		msg = fmt.Sprintln("login or passowrd is incorrect")
 		check = false
 	}
 
@@ -79,6 +79,7 @@ func Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
+		defer cancel()
 		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
 		l.Println(c.GetString("Authorization"))
 
@@ -93,7 +94,7 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
+		_, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -102,7 +103,7 @@ func Register() gin.HandlerFunc {
 		}
 		password := HashPassword(*user.Password)
 		user.Password = &password
-		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
+		count, err := userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -129,10 +130,115 @@ func Register() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 			return
 		}
+
+		if err = RegisterIntoUni(&user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error: unable to insert user into university. ": err.Error()})
+		}
+
 		c.JSON(http.StatusOK, resultInsertionNumber)
 		defer cancel()
 	}
 }
+
+func RegisterIntoUni(user *models.User) error {
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
+}
+
+// func Register() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+
+// 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+// 		var user models.User
+// 		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
+// 		l.Println(c.GetString("Authorization"))
+
+// 		if err := c.BindJSON(&user); err != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+// 			return
+// 		}
+
+// 		validationErr := validate.Struct(user)
+// 		if validationErr != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+// 			return
+// 		}
+
+// 		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
+// 		defer cancel()
+// 		if err != nil {
+// 			log.Panic(err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the email"})
+// 			return
+// 		}
+
+// 		password := HashPassword(*user.Password)
+// 		user.Password = &password
+
+// 		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
+// 		defer cancel()
+// 		if err != nil {
+// 			log.Panic(err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the phone number"})
+// 			return
+// 		}
+
+// 		if count > 0 {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "this email or phone number already exists"})
+// 			return
+// 		}
+
+// 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+// 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+// 		user.ID = primitive.NewObjectID()
+// 		user.User_id = user.ID.Hex()
+// 		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, *&user.User_id)
+// 		user.Token = &token
+// 		user.Refresh_token = &refreshToken
+
+// 		jsonData, err := json.Marshal(user)
+// 		if err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON data"})
+// 			return
+// 		}
+
+// 		resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
+// 		if err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with the university service"})
+// 			l.Println(c.GetString(err.Error()))
+// 			return
+// 		}
+// 		defer resp.Body.Close()
+
+// 		l = log.New(gin.DefaultWriter, "MY STATUS CODE IS: "+strconv.Itoa(resp.StatusCode), log.LstdFlags)
+// 		if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save student data in the university service"})
+// 			return
+// 		}
+// 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
+// 		if insertErr != nil {
+// 			l.Println(err.Error())
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
+// 			return
+// 		}
+// 		c.JSON(http.StatusOK, resultInsertionNumber)
+// 		defer cancel()
+// 	}
+// }
 
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -140,6 +246,7 @@ func Login() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
 		var foundUser models.User
+		defer cancel()
 
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -155,7 +262,7 @@ func Login() gin.HandlerFunc {
 
 		passwordIsValid, _ := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
-		if passwordIsValid != true {
+		if !passwordIsValid {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password"})
 			return
 		}

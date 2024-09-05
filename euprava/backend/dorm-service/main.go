@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	controllers "dorm-service/controllers"
 	"dorm-service/data"
+	helper "dorm-service/helpers"
+	routes "dorm-service/routes"
 	"log"
 	"net/http"
 	"os"
@@ -33,13 +36,10 @@ func main() {
 		Credentials:     true,
 		ValidateHeaders: false,
 	}))
-
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	defer cancel()
 
 	logger := log.New(os.Stdout, "[dorm-api] ", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[dorm-store] ", log.LstdFlags)
-
 	store, err := data.NewDormRepo(timeoutContext, storeLogger)
 	if err != nil {
 		logger.Fatal(err)
@@ -47,12 +47,18 @@ func main() {
 	defer store.DisconnectMongo(timeoutContext)
 	store.Ping()
 
+	helper.InitializeTokenHelper(store.GetClient())
+
 	if err != nil {
 		log.Fatalf("failed to start the database server: %v", err)
 	}
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	dormController := controllers.NewDormController(logger, store)
+
+	routes.MainRoutes(router, *dormController)
 
 	server := &http.Server{
 		Addr:    ":" + port,
