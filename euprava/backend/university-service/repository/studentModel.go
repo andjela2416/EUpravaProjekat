@@ -88,13 +88,13 @@ type User struct {
 
 type Student struct {
 	User
-	Major         string  `bson:"major" json:"major"`
-	Year          int     `bson:"year" json:"year"`
-	AssignedDorm  string  `bson:"assigned_dorm" json:"assigned_dorm"`
-	Scholarship   bool    `bson:"scholarship" json:"scholarship"`
-	HighschoolGPA float64 `bson:"highschool_gpa" json:"highschool_gpa"`
-	GPA           float64 `bson:"gpa" json:"gpa"`
-	ESBP          int     `bson:"esbp" json:"esbp"`
+	Major         string  `bson:"major" json:"major,omitempty"`
+	Year          int     `bson:"year" json:"year,omitempty"`
+	AssignedDorm  string  `bson:"assigned_dorm" json:"assigned_dorm,omitempty"`
+	Scholarship   bool    `bson:"scholarship" json:"scholarship,omitempty"`
+	HighschoolGPA float64 `bson:"highschool_gpa" json:"highschool_gpa,omitempty"`
+	GPA           float64 `bson:"gpa" json:"gpa,omitempty"`
+	ESBP          int     `bson:"esbp" json:"esbp,omitempty"`
 }
 
 type Exam struct {
