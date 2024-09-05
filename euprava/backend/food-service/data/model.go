@@ -2,9 +2,80 @@ package data
 
 import (
 	"encoding/json"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
+	"time"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type User struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Firstname   string             `bson:"firstName,omitempty" json:"firstName,omitempty"`
+	Lastname    string             `bson:"lastName,omitempty" json:"lastName,omitempty"`
+	Gender      Gender             `bson:"gender,omitempty" json:"gender,omitempty"`
+	DateOfBirth int                `bson:"date_of_birth,omitempty" json:"date_of_birth,omitempty"`
+	Residence   string             `bson:"residence,omitempty" json:"residence,omitempty"`
+	Email       string             `bson:"email,omitempty" json:"email,omitempty"`
+	Username    string             `bson:"username,omitempty" json:"username,omitempty"`
+	UserType    UserType           `bson:"userType,omitempty" json:"userType,omitempty"`
+	FoodID      primitive.ObjectID `bson:"foodID,omitempty" json:"foodID,omitempty"`
+}
+
+type UserType string
+
+const (
+	MUSTERIJA = "MUSTERIJA"
+	RADNIK    = "RADNIK"
+)
+
+type Gender string
+
+const (
+	Male   = "Male"
+	Female = "Female"
+)
+
+type Users []*User
+
+type Food struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	UserID   primitive.ObjectID `bson:"userId,omitempty" json:"userId,omitempty"`
+	FoodName string             `bson:"foodName,omitempty" json:"foodName,omitempty"`
+	Stanje   Stanje             `bson:"status,omitempty" json:"status,omitempty"`
+}
+type Stanje string
+
+const (
+	Porucena   = "Porucena"
+	Neporucena = "Neporucena"
+)
+
+type Foods []*Food
+
+func (o *Food) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *Food) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
+type AuthUser struct {
+	ID            primitive.ObjectID `bson:"_id"`
+	First_name    *string            `json:"first_name" validate:"required,min=2,max=100"`
+	Last_name     *string            `json:"last_name" validate:"required,min=2,max=100"`
+	Email         *string            `json:"email" validate:"email,required"`
+	Password      *string            `json:"password" validate:"required,min=8"`
+	Phone         *string            `json:"phone" validate:"required"`
+	Address       *string            `json:"address" validate:"required"`
+	Token         *string            `json:"token"`
+	User_type     *string            `json:"user_type" validate:"required"`
+	Refresh_token *string            `json:"refresh_token"`
+	Created_at    time.Time          `json:"created_at"`
+	Updated_at    time.Time          `json:"updated_at"`
+	User_id       string             `json:"user_id"`
+}
 
 type Student struct {
 	ID        primitive.ObjectID `bson:"_id" json:"id"`
@@ -75,12 +146,33 @@ func (o *Student) FromJSON(r io.Reader) error {
 	return d.Decode(o)
 }
 
+func (o *Users) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *Users) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
+func (o *User) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(o)
+}
+
+func (o *User) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(o)
+}
+
+/*
 type UserType string
 
 const (
 	Guest = "Guest"
 	Host  = "Host"
-)
+)*/
 
 type UsernameChange struct {
 	OldUsername string `json:"old_username"`

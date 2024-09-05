@@ -11,6 +11,8 @@ import (
 	"os/signal"
 	"time"
 
+	"syscall"
+
 	"github.com/gorilla/mux"
 )
 
@@ -39,6 +41,11 @@ func main() {
 	// Inicijalizacija rutera i dodavanje middleware-a za sve zahteve
 	router := mux.NewRouter()
 	router.Use(MiddlewareContentTypeSet)
+
+	// Kreiranje novog unosa hrane
+	createFood := router.Methods(http.MethodPost).Subrouter()
+	createFood.HandleFunc("/food", foodServiceHandler.CreateFoodHandler)
+	createFood.Use(foodServiceHandler.MiddlewareFoodDeserialization)
 
 	getAllFoodForStudents := router.Methods(http.MethodGet).Subrouter()
 	getAllFoodForStudents.HandleFunc("/studentsfood", foodServiceHandler.GetAllFoodOfStudents)
@@ -78,9 +85,8 @@ func main() {
 		}
 	}()
 
-	sigCh := make(chan os.Signal)
-	signal.Notify(sigCh, os.Interrupt)
-	signal.Notify(sigCh, os.Kill)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
 	sig := <-sigCh
 	logger.Println("Received terminate, graceful shutdown", sig)

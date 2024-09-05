@@ -6,22 +6,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gorilla/sessions"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type FoodServiceRepo struct {
 	cli    *mongo.Client
 	logger *log.Logger
 	client *http.Client
+	store  *sessions.CookieStore
 }
 
 func NewFoodServiceRepo(ctx context.Context, logger *log.Logger) (*FoodServiceRepo, error) {
@@ -36,7 +40,7 @@ func NewFoodServiceRepo(ctx context.Context, logger *log.Logger) (*FoodServiceRe
 	if err != nil {
 		return nil, err
 	}
-
+	store := sessions.NewCookieStore([]byte("super-secret-key"))
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
@@ -50,6 +54,7 @@ func NewFoodServiceRepo(ctx context.Context, logger *log.Logger) (*FoodServiceRe
 		logger: logger,
 		cli:    client,
 		client: httpClient,
+		store:  store,
 	}, nil
 }
 
@@ -101,6 +106,81 @@ func (rr *FoodServiceRepo) GetAllFoodOfStudents() (*Students, error) {
 	return &students, nil
 }
 
+func (rr *FoodServiceRepo) GetTokenFromSession(r *http.Request) (string, error) {
+	session, err := rr.store.Get(r, "session-name")
+	if err != nil {
+		return "", err
+	}
+
+	token, ok := session.Values["token"].(string)
+	if !ok {
+		return "", errors.New("token not found in session")
+	}
+
+	return token, nil
+}
+
+func (rr *FoodServiceRepo) GetLoggedUser(r *http.Request) (*AuthUser, error) {
+	token, err := rr.GetTokenFromSession(r)
+	if err != nil {
+		return nil, err
+	}
+
+	meEndpoint := "http://localhost:8080/user/me"
+
+	req, err := http.NewRequest("GET", meEndpoint, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending GET request:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Unexpected status code:", resp.StatusCode)
+		return nil, errors.New("unexpected status code")
+	}
+
+	var user AuthUser
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	if err != nil {
+		fmt.Println("Error decoding JSON response:", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+func (rr *FoodServiceRepo) CreateFoodEntry(r *http.Request, foodData *Food) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Postavi dummy userID jer trenutno ne koristiš ulogovanog korisnika
+	dummyUserID := primitive.NilObjectID
+	foodData.UserID = dummyUserID
+	foodData.Stanje = Neporucena
+
+	// Loguj podatke pre umetanja
+	fmt.Printf("Inserting food data: %+v\n", foodData)
+
+	foodCollection := rr.getCollection("food")
+
+	// Umetanje u MongoDB
+	_, err := foodCollection.InsertOne(ctx, foodData)
+	if err != nil {
+		fmt.Println("Error inserting food data:", err) // Loguj grešku umetanja
+		return err
+	}
+
+	return nil
+}
+
 // editFood
 func (rr *FoodServiceRepo) EditFoodForStudent(studentID string, newFood string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
@@ -123,10 +203,7 @@ func (rr *FoodServiceRepo) EditFoodForStudent(studentID string, newFood string) 
 var therapiesList Therapies
 
 func CacheTherapies(therapies Therapies) {
-	//therapiesList = append(therapiesList, therapies...)
-	for _, therapy := range therapies {
-		therapiesList = append(therapiesList, therapy)
-	}
+	therapiesList = append(therapiesList, therapies...)
 }
 
 func GetCachedTherapies() Therapies {

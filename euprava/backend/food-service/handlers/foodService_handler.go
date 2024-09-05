@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"food-service/data"
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FoodServiceHandler struct {
@@ -17,9 +18,40 @@ type FoodServiceHandler struct {
 }
 
 type KeyProduct struct{}
+type KeyFood struct{}
 
 func NewFoodServiceHandler(l *log.Logger, r *data.FoodServiceRepo) *FoodServiceHandler {
 	return &FoodServiceHandler{l, r}
+}
+
+// CreateFoodHandler kreira novi unos hrane sa stanjem postavljenim na 'Neporucena'
+func (h *FoodServiceHandler) CreateFoodHandler(rw http.ResponseWriter, r *http.Request) {
+	// Preuzmi podatke o hrani iz konteksta
+	foodData := r.Context().Value(KeyFood{}).(*data.Food)
+
+	fmt.Printf("Received food entry: %+v\n", foodData)
+
+	// Kreiraj novi unos hrane koristeći metodu iz repo
+	err := h.foodServiceRepo.CreateFoodEntry(r, foodData)
+	if err != nil {
+		h.logger.Print("Database exception: ", err)
+		http.Error(rw, "Error creating food entry.", http.StatusInternalServerError)
+		return
+	}
+
+	// Postavi status kod 201 Created
+	rw.WriteHeader(http.StatusCreated)
+
+	// Definiši strukturu odgovora sa porukom i podacima o kreiranoj hrani
+	response := map[string]interface{}{
+		"message":  "Food entry created successfully",
+		"foodName": foodData.FoodName,
+		"status":   foodData.Stanje,
+	}
+
+	// Pošalji JSON odgovor nazad klijentu
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(response)
 }
 
 // mongo
@@ -197,5 +229,27 @@ func (s *FoodServiceHandler) MiddlewareTherapyDeserialization(next http.Handler)
 		ctx := context.WithValue(h.Context(), KeyProduct{}, students)
 		h = h.WithContext(ctx)
 		next.ServeHTTP(rw, h)
+	})
+}
+
+// MiddlewareFoodDeserialization je middleware funkcija koja preuzima podatke o hrani iz zahteva i stavlja ih u kontekst
+func (h *FoodServiceHandler) MiddlewareFoodDeserialization(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		foodData := &data.Food{}
+
+		// Pokušaj deserializacije JSON podataka iz tela zahteva
+		err := json.NewDecoder(r.Body).Decode(foodData)
+		if err != nil {
+			http.Error(rw, "Unable to decode JSON", http.StatusBadRequest)
+			h.logger.Fatal(err)
+			return
+		}
+
+		// Postavi deserializovane podatke u kontekst
+		ctx := context.WithValue(r.Context(), KeyFood{}, foodData)
+		r = r.WithContext(ctx)
+
+		// Nastavi sa sledeæim handlerom
+		next.ServeHTTP(rw, r)
 	})
 }
