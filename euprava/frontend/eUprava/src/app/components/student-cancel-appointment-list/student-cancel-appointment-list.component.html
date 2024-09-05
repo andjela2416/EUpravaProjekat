@@ -1,0 +1,33 @@
+<!-- appointment-list.component.html -->
+
+<div class="appointment-table-container">
+  <table class="appointment-table">
+    <thead>
+    <tr>
+      <th class="date-column">Date</th>
+      <th>Doctor</th>
+      <th>Door Number</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let appointment of appointments">
+      <td class="date-column">{{ appointment.date | date: 'short' }}</td>
+      <td>{{ appointment.student || 'null' }}</td>
+      <td>{{ appointment.door_number }}</td>
+      <td>{{ appointment.description || 'null' }}</td>
+      <button class="button" style="margin:10px"
+        [disabled]="!isCancelable(appointment.date)"
+        (click)="cancelAppointment(appointment.id)">
+        Otkazi
+      </button>
+      <div *ngIf="!isCancelable(appointment.date)">
+        <p>Termine za manje od 24 časa ne možete otkazati.</p>
+      </div>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+
