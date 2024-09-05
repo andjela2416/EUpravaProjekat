@@ -108,7 +108,7 @@ func (dr *DormRepo) GetApplication(studentid string, selectionid string) (*model
 	}
 
 	for _, app := range selection.Applications {
-		if app.User.ID == studentObjectId {
+		if app.Student.ID == studentObjectId {
 			return app, nil
 		}
 	}
@@ -124,13 +124,13 @@ func (dr *DormRepo) GetSelection(selectionID string) (*models.Selection, error) 
 
 	err = selCollection.FindOne(context.Background(), bson.M{"_id": objectId}).Decode(&selection)
 	if err != nil {
-		return nil, fmt.Errorf("No selections not found for id: %s", selectionID)
+		return nil, fmt.Errorf("no selections not found for id: %s", selectionID)
 	}
 
 	return &selection, nil
 }
 
-func (dr *DormRepo) InsertSelection(selection *models.Selection) (error, primitive.ObjectID) {
+func (dr *DormRepo) InsertSelection(selection *models.Selection) (primitive.ObjectID, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
@@ -139,10 +139,10 @@ func (dr *DormRepo) InsertSelection(selection *models.Selection) (error, primiti
 	result, err := selCollection.InsertOne(ctx, &selection)
 	if err != nil {
 		dr.logger.Println(err)
-		return err, primitive.NewObjectID()
+		return primitive.NewObjectID(), err
 	}
 	dr.logger.Printf("Documents ID: %v\n", result.InsertedID)
-	return nil, selection.Id
+	return selection.Id, nil
 }
 
 func (dr *DormRepo) UpdateSelection(selectionID string, selection *models.Selection) error {
@@ -152,7 +152,7 @@ func (dr *DormRepo) UpdateSelection(selectionID string, selection *models.Select
 	selCollection := OpenCollection(dr.cli, "selections")
 	objectId, err := primitive.ObjectIDFromHex(selectionID)
 	if err != nil {
-		return fmt.Errorf("Invalid ID: %v", err)
+		return fmt.Errorf("invalid ID: %v", err)
 	}
 
 	updateData := bson.M{
@@ -166,10 +166,10 @@ func (dr *DormRepo) UpdateSelection(selectionID string, selection *models.Select
 
 	result, err := selCollection.UpdateOne(ctx, bson.M{"_id": objectId}, updateData)
 	if err != nil {
-		return fmt.Errorf("Could not update selection with id: %s, error: %v", selectionID, err)
+		return fmt.Errorf("could not update selection with id: %s, error: %v", selectionID, err)
 	}
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("No selection found with id: %s", selectionID)
+		return fmt.Errorf("no selection found with id: %s", selectionID)
 	}
 
 	dr.logger.Printf("Updated selection with id: %s", selectionID)
@@ -183,15 +183,15 @@ func (dr *DormRepo) DeleteSelection(selectionID string) error {
 	selCollection := OpenCollection(dr.cli, "selections")
 	objectId, err := primitive.ObjectIDFromHex(selectionID)
 	if err != nil {
-		return fmt.Errorf("Invalid ID: %v", err)
+		return fmt.Errorf("invalid ID: %v", err)
 	}
 
 	result, err := selCollection.DeleteOne(ctx, bson.M{"_id": objectId})
 	if err != nil {
-		return fmt.Errorf("Could not delete selection with id: %s, error: %v", selectionID, err)
+		return fmt.Errorf("could not delete selection with id: %s, error: %v", selectionID, err)
 	}
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("No selection found with id: %s", selectionID)
+		return fmt.Errorf("no selection found with id: %s", selectionID)
 	}
 
 	dr.logger.Printf("Deleted selection with id: %s", selectionID)
@@ -210,7 +210,6 @@ func (dr *DormRepo) CheckSelectionOverlap(selection models.Selection, isUpdate b
 		return fmt.Errorf("invalid end date format: %v", err)
 	}
 
-	dr.logger.Printf("parsed dates in overlap")
 	now := time.Now()
 
 	filter := bson.M{
@@ -244,14 +243,13 @@ func (dr *DormRepo) CheckSelectionOverlap(selection models.Selection, isUpdate b
 		if err != nil {
 			return fmt.Errorf("invalid end date format in other selection: %v", err)
 		}
-		dr.logger.Printf("parsed other dates in overlap")
 
 		if (currentStartDate.Before(otherEndDate) && currentEndDate.After(otherStartDate)) ||
 			(otherStartDate.Before(currentEndDate) && otherEndDate.After(currentStartDate) ||
 				currentStartDate.Equal(otherStartDate) || currentStartDate.Equal(otherEndDate) ||
 				currentEndDate.Equal(otherStartDate) || currentEndDate.Equal(otherEndDate)) {
-			dr.logger.Printf("should return an error in overlap")
-			return fmt.Errorf("The date you selected overlaps with already existing ones: %s - %s", otherStartDate.String(), otherEndDate.String())
+
+			return fmt.Errorf("the date you selected overlaps with already existing ones: %s - %s", otherStartDate.String(), otherEndDate.String())
 		}
 	}
 
@@ -273,22 +271,23 @@ func (dr *DormRepo) Insertapplications(application *models.Application) error {
 	return nil
 }
 
-func (dr *DormRepo) InsertApp(app models.Application, selectionId string) error {
+func (dr *DormRepo) InsertApp(app models.Application, selectionId string) (models.Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
+	var errorApp models.Application
 
 	selCollection := OpenCollection(dr.cli, "selections")
 
 	buildingObjectId, err := primitive.ObjectIDFromHex(selectionId)
 	if err != nil {
-		return fmt.Errorf("invalid building ID: %v", err)
+		return errorApp, fmt.Errorf("invalid building ID: %v", err)
 	}
 
 	selection, err := dr.GetSelection(selectionId)
 	if err != nil {
-		return fmt.Errorf("failed to get building: %v", err)
+		return errorApp, fmt.Errorf("failed to get building: %v", err)
 	}
-
+	app.Id = primitive.NewObjectID()
 	app.Status = "Pending"
 
 	selection.Applications = append(selection.Applications, &app)
@@ -299,10 +298,10 @@ func (dr *DormRepo) InsertApp(app models.Application, selectionId string) error 
 		bson.M{"$set": bson.M{"applications": selection.Applications}},
 	)
 	if err != nil {
-		return fmt.Errorf("error updating building: %v", err)
+		return errorApp, fmt.Errorf("error updating building: %v", err)
 	}
 
-	return nil
+	return app, nil
 }
 
 func (dr *DormRepo) DeleteApp(appUserID string, selectionId string) error {
@@ -325,7 +324,7 @@ func (dr *DormRepo) DeleteApp(appUserID string, selectionId string) error {
 	var updatedApplications []*models.Application
 	appFound := false
 	for _, app := range selection.Applications {
-		if app.User != nil && app.User.ID.Hex() == appUserID {
+		if app.Student != nil && app.Student.ID.Hex() == appUserID {
 			appFound = true
 		} else {
 			updatedApplications = append(updatedApplications, app)
@@ -368,7 +367,7 @@ func (dr *DormRepo) GetAllApplications() ([]*models.Application, error) {
 	return apps, nil
 }
 
-func (dr *DormRepo) InsertBuilding(building models.Building) (error, primitive.ObjectID) {
+func (dr *DormRepo) InsertBuilding(building models.Building) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	building.Id = primitive.NewObjectID()
@@ -376,10 +375,10 @@ func (dr *DormRepo) InsertBuilding(building models.Building) (error, primitive.O
 	result, err := buildingCollection.InsertOne(ctx, &building)
 	if err != nil {
 		dr.logger.Println(err)
-		return err, building.Id
+		return building.Id, err
 	}
 	dr.logger.Printf("Documents ID: %v\n", result.InsertedID)
-	return nil, building.Id
+	return building.Id, nil
 
 }
 
@@ -478,6 +477,41 @@ func (dr *DormRepo) InsertRoom(insertedCapacity int, insertedBuildingId string) 
 	return nil
 }
 
+// EditRoom updates the details of a room in a building
+func (dr *DormRepo) EditRoom(roomNumber int, buildingId primitive.ObjectID, updatedRoom *models.Room) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	roomCollection := OpenCollection(dr.cli, "rooms")
+
+	// Define the filter to find the specific room based on room_number and building_id
+	filter := bson.M{
+		"room_number": roomNumber,
+		"building_id": buildingId,
+	}
+
+	// Define the fields to update
+	update := bson.M{
+		"$set": bson.M{
+			"room_number": updatedRoom.Room_Number,
+			"capacity":    updatedRoom.Capacity,
+			"students":    updatedRoom.Students, // Update the students list if needed
+		},
+	}
+
+	// Perform the update operation
+	result, err := roomCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update room: %v", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("no room found with room number %d in building", roomNumber)
+	}
+
+	dr.logger.Printf("Room %d in building %s updated successfully", roomNumber, buildingId.Hex())
+	return nil
+}
 func (dr *DormRepo) GetRoom(number int, buildingId string) (*models.Room, error) {
 	buildingCollection := OpenCollection(dr.cli, "buildings")
 

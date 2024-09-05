@@ -18,9 +18,7 @@ type User struct {
 }
 
 type Student struct {
-	Uid           string  `json:"uid"`
-	FirstName     string  `json:"first_name"`
-	LastName      string  `json:"last_name"`
+	User
 	Scholarship   bool    `json:"scholarship"`
 	AssignedDorm  string  `json:"assigned_dorm"`
 	HighschoolGPA float64 `json:"highschool_gpa"`
@@ -30,9 +28,9 @@ type Student struct {
 }
 
 type Application struct {
-	Id     primitive.ObjectID `bson:"_id"`
-	Status string             `json:"status"` //accepted / rejected / pending
-	User   *User              `json:"user"`
+	Id      primitive.ObjectID `bson:"_id"`
+	Status  string             `json:"status"` //accepted / rejected / pending
+	Student *Student           `json:"student"`
 }
 
 type Selection struct {
@@ -48,6 +46,7 @@ type Building struct {
 	Name    string             `json:"name" bson:"name"`
 	Address string             `json:"address" bson:"address"`
 	Rooms   Rooms              `json:"rooms,omitempty" bson:"rooms"`
+	Price   float64            `json:"price,omitempty" bson:"price"`
 }
 
 type Room struct {

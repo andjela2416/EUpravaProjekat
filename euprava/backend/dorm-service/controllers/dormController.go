@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -26,7 +27,7 @@ var validate = validator.New()
 func NewDormController(l *log.Logger, r *data.DormRepo) *DormController {
 	return &DormController{l, r}
 }
-func (dc DormController) GetStudentByID(studentId string) (*models.User, error) {
+func (dc DormController) GetStudentByID(studentId string) (*models.Student, error) {
 
 	uniUrl := fmt.Sprintf("http://auth-service:8080/users/%v", studentId)
 	uniResponse, err := http.Get(uniUrl)
@@ -41,7 +42,7 @@ func (dc DormController) GetStudentByID(studentId string) (*models.User, error) 
 		dc.logger.Println("error: ", string(body))
 		return nil, fmt.Errorf("uni service returned error: %s", string(body))
 	}
-	var returnedStudent *models.User
+	var returnedStudent *models.Student
 	if err := json.NewDecoder(uniResponse.Body).Decode(&returnedStudent); err != nil {
 		dc.logger.Printf("error parsing auth response body: %v\n", err)
 		return nil, fmt.Errorf("error parsing uni response body")
@@ -91,7 +92,6 @@ func (dc *DormController) GetSelection() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, app)
-		return
 
 	}
 }
@@ -127,14 +127,14 @@ func (dc *DormController) InsertSelection() gin.HandlerFunc {
 			return
 		}
 
-		err, assignedId := dc.repo.InsertSelection(&selection)
+		assignedId, err := dc.repo.InsertSelection(&selection)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		selection.Id = assignedId
 		c.JSON(http.StatusOK, gin.H{"Dorm selection period created": selection})
-		return
+
 	}
 }
 
@@ -146,6 +146,11 @@ func (dc *DormController) UpdateSelection() gin.HandlerFunc {
 		var selection models.Selection
 		objectId, err := primitive.ObjectIDFromHex(selectionID)
 		selection.Id = objectId
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to convert id from url to type ObjectID"})
+			return
+		}
 
 		if err := c.ShouldBindJSON(&selection); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -190,13 +195,11 @@ func (dc *DormController) DeleteSelection() gin.HandlerFunc {
 func (dc *DormController) InsertApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		id, exists := c.Get("uid")
-		sid, exists := c.Get("sid")
+		selectionId, exists := c.Params.Get("selectionId")
+		id, exists1 := c.Get("uid")
 		studentId := id.(string)
-		selectionId := sid.(string)
-
-		if !exists {
-			c.JSON(http.StatusBadRequest, gin.H{"error: student/selection id not found ": studentId})
+		if !exists || !exists1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error: student/selection id not found. Student ": studentId})
 			return
 		}
 		var application models.Application
@@ -210,13 +213,14 @@ func (dc *DormController) InsertApplication() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		application.User = student
-		if err = dc.repo.InsertApp(application, selectionId); err != nil {
+		application.Student = student
+		app, err := dc.repo.InsertApp(application, selectionId)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"database exception": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"Application created": application})
+		c.JSON(http.StatusOK, gin.H{"Application created": app})
 	}
 }
 
@@ -229,17 +233,16 @@ func (dc *DormController) GetAllApplications() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, apps)
-		return
 	}
 }
 func (dc *DormController) GetApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, exists := c.Get("uid")
-		sid, exists := c.Get("sid")
+		sid, exists1 := c.Get("sid")
 		studentId := id.(string)
 		selectionId := sid.(string)
 
-		if !exists {
+		if !exists || !exists1 {
 			c.JSON(http.StatusNotFound, gin.H{"error: student/selection id not found in token": studentId})
 			return
 		}
@@ -250,16 +253,126 @@ func (dc *DormController) GetApplication() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, app)
-		return
 
 	}
 }
 
-//func (dc DormController) ProcessApplications(selection Selection) error {
+func (dc *DormController) DeleteApplication() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		selectionId := c.Param("id")
+		studentId, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error: student/selection id not found in token": studentId})
+			return
+		}
+		err := dc.repo.DeleteApp(studentId.(string), selectionId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, "Application deleted successfully.")
+
+	}
+}
+
+// func (dc DormController) ProcessApplications(selection Selection) error {
 // select all pending applications, rank them,
-//accept the first n number of them based on how many spaces there are
-//assign students to random non-full rooms
-//}
+// accept the first n number of them based on how many spaces there are
+// assign students to random non-full rooms
+// }
+
+func (dc *DormController) RankStudents(selection models.Selection) ([]models.Student, error) {
+	var studentsRanked []models.Student
+	for _, app := range selection.Applications {
+		studentsRanked = append(studentsRanked, *app.Student)
+	}
+	sort.Slice(studentsRanked, func(i, j int) bool {
+		if studentsRanked[i].GPA == studentsRanked[j].GPA {
+			return studentsRanked[i].Year > studentsRanked[j].Year
+		}
+		return studentsRanked[i].GPA > studentsRanked[j].GPA
+	})
+	return studentsRanked, nil
+
+}
+
+// func (dc *DormController) AssignStudents(students []models.Students, buildingId string) error {
+
+// 	buildingObjectId, err := primitive.ObjectIDFromHex(buildingId)
+// 	building, err := dc.GetBuildingLocal(buildingObjectId.Hex())
+// 	if err != nil {
+// 		return fmt.Errorf(err.Error())
+// 	}
+// 	numOfStudents := len(students)
+// 	var count int
+// 	for i, room := range building.Rooms {
+// 		count = count + 1
+// 		for _ ,student := range students{
+// 		room.Students = &models.Students{}
+// 		*room.Students = append(*room.Students, student)
+// 		}
+// 	}
+// 	return nil
+
+// }
+
+func (dc *DormController) AssignStudents(rankedStudents []models.Student, buildingId string) error {
+	// Convert buildingId to ObjectID
+	buildingObjectId, err := primitive.ObjectIDFromHex(buildingId)
+	if err != nil {
+		return fmt.Errorf("invalid building ID: %v", err)
+	}
+	building, err := dc.GetBuildingLocal(buildingObjectId.Hex())
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+
+	// Iterate through ranked students and assign them to rooms
+	studentIndex := 0
+	for _, room := range building.Rooms {
+		// Check room capacity and fill it
+		for room.Students == nil || len(*room.Students) < room.Capacity {
+			if studentIndex >= len(rankedStudents) {
+				break // No more students to assign
+			}
+
+			// Add student to room
+			if room.Students == nil {
+				room.Students = &models.Students{}
+			}
+
+			student := &rankedStudents[studentIndex]
+			*room.Students = append(*room.Students, student)
+
+			// Increment student index
+			studentIndex++
+
+			// If room is full, break and move to the next room
+			if len(*room.Students) >= room.Capacity {
+				break
+			}
+		}
+
+		err := dc.EditRoomLocal(room.Room_Number, buildingId, *room)
+		if err != nil {
+			return fmt.Errorf("failed to update room %d: %v", room.Room_Number, err)
+		}
+
+		// Break if all students have been assigned
+		if studentIndex >= len(rankedStudents) {
+			break
+		}
+	}
+
+	//If not all students could be assigned, handle that case
+	if studentIndex < len(rankedStudents) {
+		return fmt.Errorf("not all students could be assigned to rooms, remaining: %d", len(rankedStudents)-studentIndex)
+	}
+
+	return nil
+}
 
 func (dc *DormController) InsertBuilding() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -274,9 +387,9 @@ func (dc *DormController) InsertBuilding() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 			return
 		}
-		err, buildingId := dc.repo.InsertBuilding(building)
+		buildingId, err := dc.repo.InsertBuilding(building)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"database error": err.Error()})
 			return
 		}
 		building.Id = buildingId
@@ -295,7 +408,6 @@ func (dc *DormController) GetBuilding() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, building)
-		return
 
 	}
 }
@@ -319,16 +431,10 @@ func (dc *DormController) DeleteBuilding() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, building)
-		return
 
 	}
 }
 
-// number is auto assigned
-// insert capacity
-// insert buildingid
-// Todo: insert room into building based on id
-// building id is not being inserted
 func (dc *DormController) InsertRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type RoomInfo struct {
@@ -351,6 +457,20 @@ func (dc *DormController) InsertRoom() gin.HandlerFunc {
 	}
 }
 
+func (dc *DormController) EditRoomLocal(roomNumber int, buildingIdString string, updatedRoom models.Room) error {
+
+	buildingId, err := primitive.ObjectIDFromHex(buildingIdString)
+	if err != nil {
+		return err
+	}
+
+	if err := dc.repo.EditRoom(roomNumber, buildingId, &updatedRoom); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (dc *DormController) GetRoom() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomNumberParam := c.Param("number")
@@ -366,7 +486,6 @@ func (dc *DormController) GetRoom() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, room)
-		return
 
 	}
 }
