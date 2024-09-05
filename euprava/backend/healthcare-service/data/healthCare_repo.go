@@ -383,6 +383,8 @@ func (rr *HealthCareRepo) CreateAppointment(r *http.Request, appointmentData *Ap
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	appointmentData.ID = primitive.NewObjectID()
+
 	examinationsCollection := rr.getCollection("examinations")
 
 	_, err := examinationsCollection.InsertOne(ctx, appointmentData)

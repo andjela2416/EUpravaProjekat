@@ -1,1 +1,26 @@
-<p>login works!</p>
+<div class="container mt-5">
+  <h2>Login</h2>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" class="input-field" id="email" formControlName="email">
+      <div *ngIf="loginForm.controls['email'].invalid && loginForm.controls['email'].touched" class="error-message">
+        Valid email is required.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" class="input-field" id="password" formControlName="password">
+      <div *ngIf="loginForm.controls['password'].invalid && loginForm.controls['password'].touched" class="error-message">
+        Password must be at least 8 characters.
+      </div>
+    </div>
+
+    <button type="submit" class="submit-button" [disabled]="loginForm.invalid">Login</button>
+
+    <div *ngIf="errorMessage" class="error-alert">
+      {{ errorMessage }}
+    </div>
+  </form>
+</div>

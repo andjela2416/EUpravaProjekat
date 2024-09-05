@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Appointment } from 'src/app/models/appointment.model';
 import { Router } from '@angular/router';
 import { AppointmentService } from 'src/app/services/appointment.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 
 @Component({
@@ -13,7 +14,7 @@ import { AppointmentService } from 'src/app/services/appointment.service';
 export class SystematicCheckupComponent {
   checkupForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private appointmentService: AppointmentService, private router:Router) {
+  constructor(private fb: FormBuilder, private appointmentService: AppointmentService, private router:Router, private authService: AuthService) {
     this.checkupForm = this.fb.group({
        studentID: [''],
        date: ['', Validators.required],
@@ -30,9 +31,11 @@ export class SystematicCheckupComponent {
         const datetime = `${this.checkupForm.value.date}:00`;
         const dateObj = new Date(datetime);
 
-        // Kreiramo objekat za slanje na backend
+        const loggedUserId = this.authService.getUserId() || '';
+
         const appointmentData: Appointment = {
-          studentId: '',
+          student_id: '',
+          doctor_id: loggedUserId,
           date: dateObj,
           door_number: this.checkupForm.value.doorNumber,
           description: this.checkupForm.value.description,
@@ -48,7 +51,7 @@ export class SystematicCheckupComponent {
             response => {
               console.log('Appointment created successfully:', response);
               alert('Systematic Checkup Appointment created successfully:')
-              this.router.navigate(['']);
+              this.router.navigate(['appointment-management']);
             },
             error => {
               console.error('Error creating appointment:', error);

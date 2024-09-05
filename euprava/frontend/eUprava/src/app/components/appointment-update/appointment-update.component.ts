@@ -15,6 +15,7 @@ import { Appointment } from 'src/app/models/appointment.model';
 export class AppointmentUpdateComponent implements OnInit {
   appointmentForm: FormGroup;
   appointmentId: string;
+  minDate: string;
 
   constructor(
     private fb: FormBuilder,
@@ -24,12 +25,13 @@ export class AppointmentUpdateComponent implements OnInit {
     private appointmentService: AppointmentService,
     private datePipe: DatePipe // Injektuj DatePipe
   ) {
+    this.minDate = this.getMinDate();
     this.appointmentForm = this.fb.group({
       date: ['', Validators.required],
       time: ['', Validators.required],
       studentId: [''],
       door_number: ['', Validators.required],
-      description: ['', Validators.required],
+      description: [''],
       systematic: [false],
       faculty_name: [''],
       field_of_study: [''],
@@ -44,6 +46,14 @@ export class AppointmentUpdateComponent implements OnInit {
       this.appointmentId = params.get('id') || '';
       this.loadAppointment();
     });
+  }
+
+  getMinDate(): string {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    return `${year}-${month}-${day}`;
   }
 
   loadAppointment(): void {
@@ -72,7 +82,8 @@ export class AppointmentUpdateComponent implements OnInit {
       const dateObj = new Date(datetime);
 
       const appointmentData: Appointment = {
-        studentId: this.appointmentForm.value.studentId,
+        student_id: this.appointmentForm.value.studentId,
+        doctor_id: this.appointmentForm.value.doctorId,
         date: dateObj,
         door_number: this.appointmentForm.value.door_number,
         description: this.appointmentForm.value.description,
@@ -90,5 +101,13 @@ export class AppointmentUpdateComponent implements OnInit {
           console.error('Error updating appointment', error);
         });
     }
+  }
+
+  hasError(controlName: string, errorName: string) {
+    return this.appointmentForm.controls[controlName].hasError(errorName);
+  }
+
+  goBack() {
+    this.router.navigate(['/update-appointment-list']);
   }
 }
