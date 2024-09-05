@@ -16,20 +16,21 @@
         </li>
 
         <li *ngIf="isLoggedIn" class="nav-item">
-          <a class="nav-link" href="#">University</a>
+          <a class="nav-link" >University</a>
         </li>
         <li *ngIf="isLoggedIn" class="nav-item">
-          <a class="nav-link" href="#">Dorms</a>
+          <a class="nav-link" >Dorms</a>
         </li>
         <li *ngIf="isLoggedIn" class="nav-item">
-          <a class="nav-link" href="#">Healthcare</a>
+          <a class="nav-link" *ngIf="(userType$ | async) === 'doctor'" href="/appointment-management">Healthcare</a>
+          <a class="nav-link" *ngIf="(userType$ | async) === 'student'" href="/student-appointment-management">Healthcare</a>
         </li>
         <li *ngIf="isLoggedIn" class="nav-item">
-          <a class="nav-link" href="#">Food</a>
+          <a class="nav-link" >Food</a>
         </li>
 
         <li *ngIf="isLoggedIn" class="nav-item">
-          <button class="btn btn-danger" (click)="logout()">Logout</button>
+          <button class="nav-link" (click)="logout()">Logout</button>
         </li>
       </ul>
     </div>

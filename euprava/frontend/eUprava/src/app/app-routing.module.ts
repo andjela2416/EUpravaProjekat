@@ -6,7 +6,7 @@ import { SystematicCheckupComponent } from './components/systematic-checkup/syst
 import { AppointmentListComponent } from './components/appointment-list-component/appointment-list-component.component';
 import { AppointmentUpdateComponent } from './components/appointment-update/appointment-update.component';
 import { AppointmentListUpdateComponent } from './components/appointment-list-update/appointment-list-update.component';
-import { TherapyCreateComponent } from './components/create-therapy/create-therapy.component';
+import { CreateTherapyComponent } from './components/create-therapy/create-therapy.component';
 import { StudentAppointmentManagementComponent } from './components/student-appointment-management/student-appointment-management.component';
 import { StudentAppointmentListComponent } from './components/student-appointment-list/student-appointment-list.component';
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
@@ -21,7 +21,7 @@ const routes: Routes = [
   { path: 'appointment-list', component: AppointmentListComponent },
   { path: 'update-appointment/:id', component: AppointmentUpdateComponent },
   { path: 'update-appointment-list', component: AppointmentListUpdateComponent },
-  { path: 'create-therapy', component: TherapyCreateComponent },
+  { path: 'create-therapy', component: CreateTherapyComponent },
   { path: 'cancel-appointment', component: StudentCancelAppointmentListComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

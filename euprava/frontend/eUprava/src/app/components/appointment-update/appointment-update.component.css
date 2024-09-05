@@ -1,7 +1,8 @@
 .appointment-update-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 15px;
+  margin-top:8px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background-color: #f9f9f9;
@@ -10,30 +11,36 @@
 
 .appointment-update-container h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-top: 0px;
+  margin-bottom: 10px;
 }
 
 .appointment-update-container form {
   display: grid;
-  gap: 15px;
+  gap: 10px; /* Manji razmak između elemenata */
 }
 
 .appointment-update-container form div {
   display: grid;
-  gap: 10px;
+  gap: 5px; /* Manji razmak između elemenata unutar div-a */
   align-items: center; /* Centriranje elemenata vertikalno */
 }
 
 .appointment-update-container form label {
-  text-align: right;
+  text-align: left;
+  line-height: 1.2; /* Smanjenje line-height za manje visine */
 }
 
 .appointment-update-container form input,
 .appointment-update-container form textarea {
-  padding: 10px;
-  font-size: 16px;
+  padding: 8px;
+  font-size: 14px; /* Manji font-size za smanjenje visine */
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.appointment-update-container form textarea {
+  height: 50px;
 }
 
 .appointment-update-container form .checkbox-container {
@@ -42,13 +49,18 @@
   justify-content: space-between;
 }
 
+.appointment-update-container form .button-group {
+  display: flex;
+  gap: 10px;
+}
+
 .appointment-update-container form button {
-  padding: 12px 24px;
+  padding: 10px 20px; /* Manji padding za dugme */
   background-color: blue;
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px; /* Manji font-size za dugme */
   border-radius: 4px;
   transition: background-color 0.3s ease;
 }
@@ -61,10 +73,11 @@
 .appointment-update-container form button:hover:not(:disabled) {
   background-color: #1e88e5; /* Tamnija nijansa plave boje na hoveru */
 }
-.appointment-update-container form .label-right {
-  text-align: right;
-}
 
 .appointment-update-container form .align-right {
-  justify-self: end;
+  justify-self: start;
+}
+
+.text-danger{
+  font-size: 12px;
 }

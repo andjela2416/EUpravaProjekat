@@ -54,7 +54,7 @@ label {
 }
 
 .submit-button:disabled {
-  background-color: #6c757d;
+  background-color: #728a9e;
   cursor: not-allowed;
 }
 

@@ -75,7 +75,8 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 
 func Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 		var user models.User
 		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
 		l.Println(c.GetString("Authorization"))
@@ -91,20 +92,17 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
-		defer cancel()
-		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email"})
-			return
+		filter := bson.M{
+			"$or": []bson.M{
+				{"email": user.Email},
+				{"phone": user.Phone},
+			},
 		}
-		password := HashPassword(*user.Password)
-		user.Password = &password
-		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
-		defer cancel()
+
+		count, err := userCollection.CountDocuments(ctx, filter)
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the phone number"})
+			l.Println("Error occurred while checking for email or phone number:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email or phone number"})
 			return
 		}
 
@@ -113,22 +111,33 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		password := HashPassword(*user.Password)
+		user.Password = &password
+
+		user.Created_at = time.Now()
+		user.Updated_at = time.Now()
 		user.ID = primitive.NewObjectID()
 		user.User_id = user.ID.Hex()
-		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, *&user.User_id)
+
+		token, refreshToken, err := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id)
+		if err != nil {
+			l.Println("Error generating tokens:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error generating tokens"})
+			return
+		}
+
 		user.Token = &token
 		user.Refresh_token = &refreshToken
 
+		// Ubaci korisnika u kolekciju
 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
 		if insertErr != nil {
-			l.Println(err.Error())
+			l.Println("Error inserting user:", insertErr.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 			return
 		}
+
 		c.JSON(http.StatusOK, resultInsertionNumber)
-		defer cancel()
 	}
 }
 

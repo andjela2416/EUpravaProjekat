@@ -8,7 +8,7 @@ import { AppointmentService } from 'src/app/services/appointment.service';
   templateUrl: './create-therapy.component.html',
   styleUrls: ['./create-therapy.component.css']
 })
-export class TherapyCreateComponent implements OnInit {
+export class CreateTherapyComponent implements OnInit {
   therapyForm: FormGroup;
 
   constructor(
@@ -35,7 +35,7 @@ export class TherapyCreateComponent implements OnInit {
           response => {
             console.log('Therapy created successfully', response);
             alert('Therapy created successfully')
-            this.router.navigate(['']);
+            this.router.navigate(['appointment-management']);
           },
           error => {
             console.error('Error creating therapy', error);

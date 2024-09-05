@@ -54,8 +54,10 @@
         <label for="user_type">User Type</label>
         <select class="form-control" style="width: 100%" id="user_type" formControlName="user_type">
           <option value="" disabled>Select user type</option>
-          <option value="admin">Admin</option>
-          <option value="user">User</option>
+          <option value="student">Student</option>
+          <option value="doctor">Doctor</option>
+          <option value="cook">Cook</option>
+          <option value="dormWorker">Dorm worker</option>
         </select>
         <div *ngIf="registerForm.controls['user_type'].invalid && registerForm.controls['user_type'].touched" class="text-danger">
           User type is required.

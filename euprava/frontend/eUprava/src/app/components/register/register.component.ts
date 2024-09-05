@@ -1,15 +1,16 @@
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; 
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-register',
   standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    HttpClientModule,   
-    CommonModule        
+    ReactiveFormsModule,
+    HttpClientModule,
+    CommonModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -18,7 +19,7 @@ export class RegisterComponent {
   registerForm: FormGroup;
   errorMessage: string | null = null;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient,private router: Router) {
     this.registerForm = this.fb.group({
       first_name: ['', [Validators.required, Validators.minLength(2)]],
       last_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -36,6 +37,8 @@ export class RegisterComponent {
         .subscribe({
           next: (response) => {
             alert('Registration successful!');
+            console.log(response)
+            this.router.navigate(['/login']);
           },
           error: (err) => {
             this.errorMessage = err.error.error || 'An error occurred during registration';
