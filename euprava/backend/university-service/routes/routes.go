@@ -48,4 +48,13 @@ func RegisterRoutes(router *gin.Engine, ctrl *controllers.Controllers) {
 	router.GET("/assistants/:id", ctrl.GetAssistantByID)
 	router.PUT("/assistants/:id", ctrl.UpdateAssistant)
 	router.DELETE("/assistants/:id", ctrl.DeleteAssistant)
+
+	router.GET("/students", ctrl.GetAllStudents)
+	router.GET("/professors", ctrl.GetAllProfessors)
+	router.GET("/courses", ctrl.GetAllCourses)
+	router.GET("/departments", ctrl.GetAllDepartments)
+	router.GET("/universities", ctrl.GetAllUniversities)
+	router.GET("/exams", ctrl.GetAllExams)
+	router.GET("/administrators", ctrl.GetAllAdministrators)
+	router.GET("/assistants", ctrl.GetAllAssistants)
 }

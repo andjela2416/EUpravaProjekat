@@ -408,3 +408,139 @@ func (r *Repository) DeleteExam(examID string) error {
 	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
 	return err
 }
+
+func (r *Repository) GetAllStudents() ([]Student, error) {
+	collection := r.getCollection("student")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var students []Student
+	err = cursor.All(context.TODO(), &students)
+	if err != nil {
+		return nil, err
+	}
+
+	return students, nil
+}
+
+func (r *Repository) GetAllProfessors() ([]Professor, error) {
+	collection := r.getCollection("professor")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var professors []Professor
+	err = cursor.All(context.TODO(), &professors)
+	if err != nil {
+		return nil, err
+	}
+
+	return professors, nil
+}
+
+func (r *Repository) GetAllCourses() ([]Course, error) {
+	collection := r.getCollection("course")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var courses []Course
+	err = cursor.All(context.TODO(), &courses)
+	if err != nil {
+		return nil, err
+	}
+
+	return courses, nil
+}
+
+func (r *Repository) GetAllDepartments() ([]Department, error) {
+	collection := r.getCollection("department")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var departments []Department
+	err = cursor.All(context.TODO(), &departments)
+	if err != nil {
+		return nil, err
+	}
+
+	return departments, nil
+}
+
+func (r *Repository) GetAllUniversities() ([]University, error) {
+	collection := r.getCollection("university")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var universities []University
+	err = cursor.All(context.TODO(), &universities)
+	if err != nil {
+		return nil, err
+	}
+
+	return universities, nil
+}
+
+func (r *Repository) GetAllExams() ([]Exam, error) {
+	collection := r.getCollection("exam")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var exams []Exam
+	err = cursor.All(context.TODO(), &exams)
+	if err != nil {
+		return nil, err
+	}
+
+	return exams, nil
+}
+
+func (r *Repository) GetAllAdministrators() ([]Administrator, error) {
+	collection := r.getCollection("administrator")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var administrators []Administrator
+	err = cursor.All(context.TODO(), &administrators)
+	if err != nil {
+		return nil, err
+	}
+
+	return administrators, nil
+}
+
+func (r *Repository) GetAllAssistants() ([]Assistant, error) {
+	collection := r.getCollection("assistant")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var assistants []Assistant
+	err = cursor.All(context.TODO(), &assistants)
+	if err != nil {
+		return nil, err
+	}
+
+	return assistants, nil
+}
