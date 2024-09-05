@@ -75,14 +75,15 @@ type Administrator struct {
 }
 
 type User struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	FirstName   string             `bson:"first_name" json:"first_name" validate:"required"`
-	LastName    string             `bson:"last_name" json:"last_name"`
-	Username    string             `bson:"username" json:"username"`
-	Email       string             `bson:"email" json:"email" validate:"required,email"`
-	DateOfBirth time.Time          `bson:"date_of_birth" json:"date_of_birth"`
-	Password    string             `bson:"password" json:"password"`
-	UserType    UserType           `bson:"user_type" json:"user_type"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FirstName      string             `bson:"first_name" json:"first_name" validate:"required"`
+	LastName       string             `bson:"last_name" json:"last_name"`
+	Username       string             `bson:"username" json:"username"`
+	Email          string             `bson:"email" json:"email" validate:"required,email"`
+	DateOfBirth    time.Time          `bson:"date_of_birth" json:"date_of_birth"`
+	Password       string             `bson:"password" json:"password"`
+	UserType       UserType           `bson:"user_type" json:"user_type"`
+	StudentDetails *Student           `bson:"student_details,omitempty" json:"student_details,omitempty"`
 }
 
 type Student struct {
