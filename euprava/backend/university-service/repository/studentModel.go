@@ -75,14 +75,15 @@ type Administrator struct {
 }
 
 type User struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	FirstName   string             `bson:"first_name" json:"first_name" validate:"required"`
-	LastName    string             `bson:"last_name" json:"last_name"`
-	Username    string             `bson:"username" json:"username"`
-	Email       string             `bson:"email" json:"email" validate:"required,email"`
-	DateOfBirth time.Time          `bson:"date_of_birth" json:"date_of_birth"`
-	Password    string             `bson:"password" json:"password"`
-	UserType    UserType           `bson:"user_type" json:"user_type"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FirstName      string             `bson:"first_name" json:"first_name" validate:"required"`
+	LastName       string             `bson:"last_name" json:"last_name"`
+	Username       string             `bson:"username" json:"username"`
+	Email          string             `bson:"email" json:"email" validate:"required,email"`
+	DateOfBirth    time.Time          `bson:"date_of_birth" json:"date_of_birth"`
+	Password       string             `bson:"password" json:"password"`
+	UserType       UserType           `bson:"user_type" json:"user_type"`
+	StudentDetails *Student           `bson:"student_details,omitempty" json:"student_details,omitempty"`
 }
 
 type Student struct {
@@ -102,6 +103,13 @@ type Exam struct {
 	Course   Course             `bson:"course" json:"course"`
 	ExamDate time.Time          `bson:"exam_date" json:"exam_date"`
 	Status   string             `bson:"status" json:"status"`
+}
+
+type TuitionPayment struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	StudentID primitive.ObjectID `bson:"student_id" json:"student_id"`
+	Amount    float64            `bson:"amount" json:"amount"`
+	Date      time.Time          `bson:"date" json:"date"`
 }
 
 func (u *University) ToJSON(w io.Writer) error {
