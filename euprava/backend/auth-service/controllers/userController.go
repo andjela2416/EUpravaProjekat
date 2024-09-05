@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -136,11 +138,31 @@ func Register() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 			return
 		}
+		if err = RegisterIntoUni(&user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error: unable to insert user into university. ": err.Error()})
+		}
 
 		c.JSON(http.StatusOK, resultInsertionNumber)
 	}
 }
 
+func RegisterIntoUni(user *models.User) error {
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
+}
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("Request headers:", c.Errors)
