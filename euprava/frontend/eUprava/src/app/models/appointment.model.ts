@@ -1,5 +1,6 @@
 export interface Appointment {
-    studentId: string;
+    student_id: string;
+    doctor_id: string;
     date: Date;
     door_number: number;
     description: string;

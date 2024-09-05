@@ -1,7 +1,8 @@
+
 <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
   <div>
     <label for="date">Datum:</label>
-    <input type="date" id="date" formControlName="date">
+    <input type="date" id="date" formControlName="date" [attr.min]="minDate">
     <div *ngIf="hasError('date', 'required')" class="text-danger">Datum je obavezan.</div>
   </div>
 

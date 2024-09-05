@@ -1,9 +1,10 @@
+<div class="container">
 <div class="appointment-update-container">
   <h2>Update Appointment</h2>
   <form [formGroup]="appointmentForm" (ngSubmit)="updateAppointment()">
     <div>
-      <label for="date">Date</label>
-      <input id="date" formControlName="date" type="date">
+      <label for="date" >Date</label>
+      <input id="date" formControlName="date" type="date" [attr.min]="minDate">
     </div>
     <div>
       <label for="time">Time</label>
@@ -12,13 +13,14 @@
     <div>
       <label for="door_number">Door Number</label>
       <input id="door_number" formControlName="door_number" type="number">
+      <div *ngIf="hasError('door_number', 'required')" class="text-danger">Broj ordinacije je obavezan.</div>
     </div>
     <div>
       <label for="description">Description</label>
       <textarea id="description" formControlName="description"></textarea>
     </div>
     <div>
-      <label for="systematic" class="label-right">Systematic</label>
+      <label for="systematic">Systematic</label>
       <input id="systematic" formControlName="systematic" type="checkbox" class="align-right">
     </div>
     <div>
@@ -34,6 +36,10 @@
       <input id="reserved" formControlName="reserved" type="checkbox" class="align-right">
     </div>
 
-    <button type="submit" [disabled]="!appointmentForm.valid">Update</button>
+    <div class="button-group">
+      <button type="submit" [disabled]="!appointmentForm.valid">Update</button>
+      <button type="button" (click)="goBack()">Cancel</button>
+    </div>
   </form>
+</div>
 </div>

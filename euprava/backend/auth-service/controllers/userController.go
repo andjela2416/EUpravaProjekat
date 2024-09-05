@@ -77,7 +77,8 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 
 func Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 		var user models.User
 		l := log.New(gin.DefaultWriter, "User controller: ", log.LstdFlags)
 		l.Println(c.GetString("Authorization"))
@@ -93,20 +94,17 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
-		defer cancel()
-		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email"})
-			return
+		filter := bson.M{
+			"$or": []bson.M{
+				{"email": user.Email},
+				{"phone": user.Phone},
+			},
 		}
-		password := HashPassword(*user.Password)
-		user.Password = &password
-		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
-		defer cancel()
+
+		count, err := userCollection.CountDocuments(ctx, filter)
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the phone number"})
+			l.Println("Error occurred while checking for email or phone number:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the email or phone number"})
 			return
 		}
 
@@ -115,25 +113,56 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		password := HashPassword(*user.Password)
+		user.Password = &password
+
+		user.Created_at = time.Now()
+		user.Updated_at = time.Now()
 		user.ID = primitive.NewObjectID()
 		user.User_id = user.ID.Hex()
-		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, *&user.User_id)
+
+		token, refreshToken, err := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id)
+		if err != nil {
+			l.Println("Error generating tokens:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error generating tokens"})
+			return
+		}
+
 		user.Token = &token
 		user.Refresh_token = &refreshToken
 
+		// Ubaci korisnika u kolekciju
 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
 		if insertErr != nil {
-			l.Println(err.Error())
+			l.Println("Error inserting user:", insertErr.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 			return
 		}
+		if err = RegisterIntoUni(&user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error: unable to insert user into university. ": err.Error()})
+		}
+
 		c.JSON(http.StatusOK, resultInsertionNumber)
-		defer cancel()
 	}
 }
 
+func RegisterIntoUni(user *models.User) error {
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post("http://university-service:8088/students/create", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
+}
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("Request headers:", c.Errors)
@@ -175,52 +204,12 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		err = sendUserToHealthcareService(foundUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to communicate with healthcare service"})
-			return
-		}
-
 		c.JSON(http.StatusOK, gin.H{
 			"user":          foundUser,
 			"token":         token,
 			"refresh_token": refreshToken,
 		})
 	}
-}
-
-func sendUserToHealthcareService(user models.User) error {
-	healthcareURL := fmt.Sprintf("http://healthcare_service:8004/loggedUser")
-
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal user: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", healthcareURL, bytes.NewBuffer(userJSON))
-	if err != nil {
-		return fmt.Errorf("Failed to create request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	println("lola", user.ID.String())
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	println("lolaNA")
-	if err != nil {
-		print("failed", err)
-		return fmt.Errorf("Failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	println("lola????")
-
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Healthcare service returned non-200 status: %v", resp.Status)
-	}
-
-	return nil
 }
 
 func Logout() gin.HandlerFunc {
