@@ -17,10 +17,12 @@ import { StudentAppointmentListComponent } from './components/student-appointmen
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
-import { CreateFoodComponent } from './components/foodservicefront/create-food/create-food.component';
+import { CreateFoodComponent } from './components/foodservicefront/therapy-list/create-food.component';
 
 import {LoginComponent} from "./components/login/login.component";
 import {RegisterComponent} from "./components/register/register.component";
+import { UpdateFoodComponent } from './components/foodservicefront/update-food/update-food.component';
+import { HomeRadnikComponent } from './components/foodservicefront/home-radnik/home-radnik.component';
 
 
 @NgModule({
@@ -36,7 +38,10 @@ import {RegisterComponent} from "./components/register/register.component";
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
     StudentCancelAppointmentListComponent,
-    CreateFoodComponent
+    CreateFoodComponent,
+    UpdateFoodComponent,
+    HomeRadnikComponent,
+   
 
   ],
   imports: [

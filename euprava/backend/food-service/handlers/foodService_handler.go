@@ -24,6 +24,27 @@ func NewFoodServiceHandler(l *log.Logger, r *data.FoodServiceRepo) *FoodServiceH
 	return &FoodServiceHandler{l, r}
 }
 
+// GetListFoodHandler vraća sve unose hrane iz baze
+func (h *FoodServiceHandler) GetListFoodHandler(rw http.ResponseWriter, r *http.Request) {
+	foodList, err := h.foodServiceRepo.GetListFood()
+	if err != nil {
+		h.logger.Print("Database exception: ", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error retrieving food entries."))
+		return
+	}
+
+	// Konvertuj listu hrane u JSON i pošalji klijentu
+	rw.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(rw).Encode(foodList)
+	if err != nil {
+		h.logger.Print("Error converting food list to JSON: ", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("Error converting food list to JSON."))
+		return
+	}
+}
+
 // CreateFoodHandler kreira novi unos hrane sa stanjem postavljenim na 'Neporucena'
 func (h *FoodServiceHandler) CreateFoodHandler(rw http.ResponseWriter, r *http.Request) {
 	// Preuzmi podatke o hrani iz konteksta

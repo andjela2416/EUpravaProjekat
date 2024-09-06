@@ -42,6 +42,10 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(MiddlewareContentTypeSet)
 
+	// Ruta za dobijanje liste hrane
+	getFoodList := router.Methods(http.MethodGet).Subrouter()
+	getFoodList.HandleFunc("/food", foodServiceHandler.GetListFoodHandler)
+
 	// Kreiranje novog unosa hrane
 	createFood := router.Methods(http.MethodPost).Subrouter()
 	createFood.HandleFunc("/food", foodServiceHandler.CreateFoodHandler)

@@ -181,6 +181,33 @@ func (rr *FoodServiceRepo) CreateFoodEntry(r *http.Request, foodData *Food) erro
 	return nil
 }
 
+// GetListFood vraća sve unose hrane iz baze, sa dummy korisnikom (nil)
+func (rr *FoodServiceRepo) GetListFood() ([]Food, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Koristi dummy UserID (nil) jer autentifikacija nije uključena
+	dummyUserID := primitive.NilObjectID
+
+	foodCollection := rr.getCollection("food")
+
+	// Pronađi sve unose hrane bez filtriranja po korisniku
+	cursor, err := foodCollection.Find(ctx, bson.M{"userId": dummyUserID})
+	if err != nil {
+		rr.logger.Println("Error finding food entries:", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var foodList []Food
+	if err = cursor.All(ctx, &foodList); err != nil {
+		rr.logger.Println("Error decoding food entries:", err)
+		return nil, err
+	}
+
+	return foodList, nil
+}
+
 // editFood
 func (rr *FoodServiceRepo) EditFoodForStudent(studentID string, newFood string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)

@@ -1,0 +1,19 @@
+<div *ngIf="therapies.length === 0">
+    Nema dostupnih terapija.
+  </div>
+  
+  <table *ngIf="therapies.length > 0" class="table">
+    <thead>
+      <tr>
+        <th>ID Zdravstvenog Kartona Studenta</th>
+        <th>Dijagnoza</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let therapy of therapies">
+        <td>{{ therapy.StudentHealthRecordId }}</td>
+        <td>{{ therapy.Diagnosis }}</td>
+      </tr>
+    </tbody>
+  </table>
+  

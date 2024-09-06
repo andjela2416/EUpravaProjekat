@@ -41,6 +41,8 @@ export class LoginComponent {
               this.router.navigate(['/student-appointment-management']);
             } else if (response.user.user_type == "doctor") {
               this.router.navigate(['/appointment-management']);
+            } else if (response.user.user_type == "cook") {
+              this.router.navigate(['/home-radnik']);
             }
           },
           error: (err) => {
