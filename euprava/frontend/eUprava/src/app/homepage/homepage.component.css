@@ -1,0 +1,13 @@
+.homepage-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* 100% visine preglednika */
+  text-align: center;
+}
+
+.homepage-container h1 {
+  font-size: 3rem;
+  margin: 0;
+  color: #333;
+}
