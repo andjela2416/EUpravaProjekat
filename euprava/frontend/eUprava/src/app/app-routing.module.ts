@@ -12,6 +12,7 @@ import { StudentAppointmentListComponent } from './components/student-appointmen
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
 import {LoginComponent} from "./components/login/login.component";
 import {RegisterComponent} from "./components/register/register.component";
+import {HomepageComponent} from "./homepage/homepage.component";
 
 const routes: Routes = [
   { path: 'create-appointment', component: CreateAppointmentComponent },
@@ -27,6 +28,7 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'appointment-management', component: AppointmentManagementComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'homepage', component: HomepageComponent},
 ];
 
 

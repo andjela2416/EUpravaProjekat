@@ -150,6 +150,25 @@ func (rr *HealthCareRepo) GetAllUsers() (*Users, error) {
 	return &users, nil
 }
 
+func (rr *HealthCareRepo) GetAllHealthRecords() (*HealthRecords, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	hrCollection := rr.getCollection("health_records")
+
+	var hr HealthRecords
+	hrCursor, err := hrCollection.Find(ctx, bson.M{})
+	if err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	if err = hrCursor.All(ctx, &hr); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	return &hr, nil
+}
+
 // GetStudentByID vraća studenta po ID-ju.
 func (rr *HealthCareRepo) GetUserByID(userID string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
@@ -484,41 +503,38 @@ func (rr *HealthCareRepo) UpdateAppointment(id string, appointment *AppointmentD
 	return nil
 }
 
-func (rr *HealthCareRepo) DeleteAppointment(appointmentID primitive.ObjectID) error {
+func (rr *HealthCareRepo) DeleteAppointment(appointmentID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	examinationsCollection := rr.getCollection("examinations")
 
+	objectID, err := primitive.ObjectIDFromHex(appointmentID)
+	if err != nil {
+		rr.logger.Println("Error converting ID to ObjectID:", err)
+		return err
+	}
+
 	var appointmentData AppointmentData
-	err := examinationsCollection.FindOne(ctx, bson.M{"_id": appointmentID}).Decode(&appointmentData)
+	err = examinationsCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&appointmentData)
 	if err != nil {
 		return err
 	}
 
 	if appointmentData.Systematic {
-		update := bson.M{}
-		if appointmentData.Description != "" {
-			update["description"] = "Otkazano."
-		}
+		appointmentData.Description = "Otkazano."
 
-		filter := bson.M{"_id": appointmentID}
-		updateQuery := bson.M{"$set": update}
-
-		result, err := examinationsCollection.UpdateOne(ctx, filter, updateQuery)
+		err := rr.UpdateAppointment(appointmentID, &appointmentData)
 		if err != nil {
-			rr.logger.Println(err)
+			log.Print("Error updating appointment", http.StatusInternalServerError)
 			return err
 		}
-
-		rr.logger.Printf("Documents matched gggg: %v\n", result.MatchedCount)
-		rr.logger.Printf("Documents updated ssss: %v\n", result.ModifiedCount)
 		var a AppointmentData
-		err = examinationsCollection.FindOne(ctx, bson.M{"_id": appointmentID}).Decode(&appointmentData)
+		err = examinationsCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&appointmentData)
 		if err != nil {
 			return err
 		}
-		fmt.Println(result, a)
+		fmt.Println(a)
 
 		log.Printf("Slanje sistematskih podataka servisu univerziteta: %v", appointmentData)
 		if err := rr.SendSystematicDataToUniversityService(&appointmentData); err != nil {
@@ -527,7 +543,7 @@ func (rr *HealthCareRepo) DeleteAppointment(appointmentID primitive.ObjectID) er
 		}
 	}
 
-	_, err = examinationsCollection.DeleteOne(ctx, bson.M{"_id": appointmentID})
+	_, err = examinationsCollection.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
 		return err
 	}

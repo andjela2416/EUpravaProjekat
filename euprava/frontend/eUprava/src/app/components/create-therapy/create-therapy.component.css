@@ -1,11 +1,12 @@
 .therapy-create-container {
   max-width: 600px;
-  margin: 0 auto;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 80px;
+  margin-left: 80px;
 }
 
 .therapy-create-container h2 {
@@ -24,7 +25,7 @@
 }
 
 .therapy-create-container form label {
-  text-align: right;
+  text-align: left;
 }
 
 .therapy-create-container form input,
@@ -54,3 +55,53 @@
 .therapy-create-container form button:hover:not(:disabled) {
   background-color: #1e88e5; /* Darker shade of blue on hover */
 }
+
+.text-danger{
+  color: #c82333;
+}
+
+/* Stil za tabele */
+.appointment-table-container {
+  flex: 1;
+  max-width: 55%;
+  overflow-x: hidden;
+}
+
+.appointment-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+}
+
+.appointment-table thead {
+  background-color: #f2f2f2;
+}
+
+.appointment-table th, .appointment-table td {
+  padding: 5px 10px;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 14px; /* Smanjen font */
+}
+
+.appointment-table tbody tr {
+  border-bottom: 1px solid #dddddd;
+}
+
+.appointment-table tbody tr:nth-of-type(even) {
+  background-color: #f9f9f9;
+}
+
+/* Wrapper za tabele */
+.table-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+
+
+
+

@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" [ngClass]="{'mrg': !appointmentForm.get('systematic')?.value, 'normal': appointmentForm.get('systematic')?.value}">
 <div class="appointment-update-container">
   <h2>Update Appointment</h2>
   <form [formGroup]="appointmentForm" (ngSubmit)="updateAppointment()">
@@ -19,11 +19,11 @@
       <label for="description">Description</label>
       <textarea id="description" formControlName="description"></textarea>
     </div>
-    <div>
+    <div *ngIf="appointmentForm.get('systematic')?.value">
       <label for="faculty_name">Faculty Name</label>
       <input id="faculty_name" formControlName="faculty_name" type="text">
     </div>
-    <div>
+    <div *ngIf="appointmentForm.get('systematic')?.value">
       <label for="field_of_study">Field of Study</label>
       <input id="field_of_study" formControlName="field_of_study" type="text">
     </div>

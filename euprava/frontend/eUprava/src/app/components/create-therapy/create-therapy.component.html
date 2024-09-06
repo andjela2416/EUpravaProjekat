@@ -1,27 +1,44 @@
-
-<div class="therapy-create-container">
-  <h2>Kreiranje Terapije</h2>
-  <form [formGroup]="therapyForm" (ngSubmit)="onSubmit()">
-    <div>
-      <label for="studentHealthRecordId">Student HealthRecord ID (24)</label>
-      <input id="studentHealthRecordId" formControlName="studentHealthRecordId" type="text" required>
-      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['required']">
-        Student HealthRecord ID je obavezan.
+<div class=" table-wrapper">
+  <div class="therapy-create-container">
+    <h2>Kreiranje Terapije</h2>
+    <form [formGroup]="therapyForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label for="studentHealthRecordId">Zdravstveni Karton:</label>
+        <select id="studentHealthRecordId" formControlName="studentHealthRecordId">
+          <option value="" disabled>Izaberite zdravstveni karton</option>
+          <option *ngFor="let record of healthRecords" [value]="record.id">
+            {{ record.id }}, {{ record.userId?.first_name || '' }} {{ record.userId?.last_name || '' }}
+          </option>
+        </select>
+        <div *ngIf="therapyForm.get('studentHealthRecordId')?.hasError('required')" class="text-danger">Zdravstveni karton je obavezan.</div>
       </div>
-      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['minlength']">
-        Minimalna dužina je 24 karaktera.
+      <div>
+        <label for="diagnosis">Dijagnoza</label>
+        <input id="diagnosis" formControlName="diagnosis" type="textarea" required>
+        <div *ngIf="therapyForm.get('diagnosis')?.errors?.['required']" class="text-danger">
+          Dijagnoza je obavezna.
+        </div>
       </div>
-      <div *ngIf="therapyForm.get('studentHealthRecordId')?.errors?.['maxlength']">
-        Maksimalna dužina je 24 karaktera.
-      </div>
-    </div>
-    <div>
-      <label for="diagnosis">Dijagnoza</label>
-      <input id="diagnosis" formControlName="diagnosis" type="textarea" required>
-      <div *ngIf="therapyForm.get('diagnosis')?.errors?.['required']">
-        Dijagnoza je obavezna.
-      </div>
-    </div>
-    <button type="submit" [disabled]="!therapyForm.valid">Kreiraj Terapiju</button>
-  </form>
+      <button type="submit" [disabled]="!therapyForm.valid">Kreiraj Terapiju</button>
+    </form>
+  </div>
+  <div class="appointment-table-container" style="margin-right: 60px; margin-top: 20px">
+    <h2>Lista Terapija</h2>
+    <table class="appointment-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dijagnoza</th>
+        <th>Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let therapy of therapies">
+        <td>{{ therapy.id  }}</td>
+        <td>{{ therapy.diagnosis || '' }}</td>
+        <td>{{ therapy.status || '' }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

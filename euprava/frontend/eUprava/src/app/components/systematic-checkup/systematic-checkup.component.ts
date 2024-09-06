@@ -13,8 +13,10 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class SystematicCheckupComponent {
   checkupForm: FormGroup;
+  minDate: string;
 
   constructor(private fb: FormBuilder, private appointmentService: AppointmentService, private router:Router, private authService: AuthService) {
+    this.minDate = this.getMinDate();
     this.checkupForm = this.fb.group({
        studentID: [''],
        date: ['', Validators.required],
@@ -24,6 +26,17 @@ export class SystematicCheckupComponent {
        field_of_study:['', Validators.required]
     });
   }
+
+  getMinDate(): string {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    const hours = '00';
+    const minutes = '00';
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
 
   onSubmit() {
       if (this.checkupForm.valid) {

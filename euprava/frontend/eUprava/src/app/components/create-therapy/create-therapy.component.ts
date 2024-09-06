@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppointmentService } from 'src/app/services/appointment.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-create-therapy',
@@ -10,25 +11,63 @@ import { AppointmentService } from 'src/app/services/appointment.service';
 })
 export class CreateTherapyComponent implements OnInit {
   therapyForm: FormGroup;
+  healthRecords: any[] = [];
+  therapies: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private authService: AuthService
   ) {
     this.therapyForm = this.fb.group({
-      studentHealthRecordId: ['', [Validators.required, Validators.minLength(24), Validators.maxLength(24)]],
+      studentHealthRecordId: ['', [Validators.required]],
       diagnosis: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
+    this.loadHealthRecords();
+    this.loadTherapies(); // Load therapies on init
+  }
 
+  loadTherapies(): void {
+    this.appointmentService.getTherapies().subscribe(
+      data => {
+        this.therapies = data;
+      },
+      error => {
+        console.error('Error loading therapies', error);
+      }
+    );
+  }
+  loadStudentsInfo(): void {
+    this.healthRecords.forEach((hr) => {
+      this.authService.getUser(hr.userId).subscribe(
+        (student) => {
+          hr.userId = student;
+        },
+        (error) => {
+          console.error('Error loading doctor info:', error);
+        }
+      );
+    });
+  }
+
+  loadHealthRecords(): void {
+    this.appointmentService.getHealthRecords().subscribe(
+      data => {
+        this.healthRecords = data;
+        this.loadStudentsInfo();
+      },
+      error => {
+        console.error('Error loading health records', error);
+      }
+    );
   }
 
   onSubmit(): void {
     if (this.therapyForm.valid) {
-      console.log(this.therapyForm.value);
 
       this.appointmentService.createTherapy(this.therapyForm.value)
         .subscribe(

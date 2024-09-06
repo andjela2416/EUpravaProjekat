@@ -604,7 +604,6 @@ func (r *Repository) CreateNotification(notification *Notification) error {
 	notification.ID = primitive.NewObjectID()
 	notification.CreatedAt = time.Now()
 	_, err := collection.InsertOne(context.Background(), notification)
-	fmt.Print("lolanaa", notification)
 	return err
 }
 
@@ -626,7 +625,6 @@ func (r *Repository) GetNotificationByDescription(facultyName string, fieldOfStu
 		return nil, err
 	}
 
-	fmt.Print("lolanaaH", &notification)
 	return &notification, nil
 }
 
@@ -653,7 +651,6 @@ func (r *Repository) UpdateNotification(notification *Notification) error {
 					"content": newContent,
 				},
 			}
-			fmt.Print("lolanaas", newContent)
 			_, err = collection.UpdateOne(context.TODO(), filter, update)
 			return err
 		}
@@ -665,8 +662,6 @@ func (r *Repository) UpdateNotification(notification *Notification) error {
 			"content": newContent,
 		},
 	}
-
-	fmt.Print("lolanaac", newContent)
 
 	_, err = collection.UpdateOne(context.TODO(), filter, update)
 	return err

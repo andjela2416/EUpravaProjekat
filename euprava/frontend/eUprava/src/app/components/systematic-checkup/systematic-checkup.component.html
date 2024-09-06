@@ -4,7 +4,7 @@
   <form [formGroup]="checkupForm" (ngSubmit)="onSubmit()">
     <div>
       <label for="date">Datum:</label>
-      <input type="datetime-local" id="date" formControlName="date">
+      <input type="datetime-local" id="date" formControlName="date" [attr.min]="minDate">
       <div *ngIf="hasError('date', 'required')" class="text-danger">Datum i vreme su obavezni.</div>
     </div>
     <div>

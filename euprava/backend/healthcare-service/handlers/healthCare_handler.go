@@ -68,6 +68,24 @@ func (r *HealthCareHandler) GetAllUsers(rw http.ResponseWriter, h *http.Request)
 	}
 }
 
+func (r *HealthCareHandler) GetAllHealthRecords(rw http.ResponseWriter, h *http.Request) {
+	users, err := r.healthCareRepo.GetAllHealthRecords()
+	if err != nil {
+		r.logger.Print("Database exception")
+	}
+
+	if users == nil {
+		return
+	}
+
+	err = users.ToJSON(rw)
+	if err != nil {
+		http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
+		r.logger.Fatal("Unable to convert to json")
+		return
+	}
+}
+
 // GetStudentByID vraća podatke o studentu po njegovom ID-ju.
 func (h *HealthCareHandler) GetUserByID(rw http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("id")
@@ -230,13 +248,8 @@ func (r *HealthCareHandler) UpdateAppointment(rw http.ResponseWriter, h *http.Re
 // DeleteAppointment briše pregled po ID-u.
 func (h *HealthCareHandler) DeleteAppointment(rw http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	appointmentID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		http.Error(rw, "Invalid ID format", http.StatusBadRequest)
-		return
-	}
 
-	err = h.healthCareRepo.DeleteAppointment(appointmentID)
+	err := h.healthCareRepo.DeleteAppointment(id)
 	if err != nil {
 		http.Error(rw, "Error deleting appointment", http.StatusInternalServerError)
 		return
@@ -533,25 +546,9 @@ func (h *HealthCareHandler) GetTherapyDataByID(rw http.ResponseWriter, r *http.R
 func (h *HealthCareHandler) SaveAndShareTherapyDataWithDietService(rw http.ResponseWriter, r *http.Request) {
 	therapyData := r.Context().Value(KeyProduct{}).(*data.TherapyData)
 
-	// Proveri da li HealthRecordID postoji
-	exists, err := h.healthCareRepo.CheckHealthRecordExists(therapyData.StudentHealthRecordID)
-	if err != nil {
-		h.logger.Print("Error checking health record existence: ", err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		rw.Write([]byte("Error checking health record existence."))
-		return
-	}
-
-	if !exists {
-		h.logger.Print("Health record ID does not exist: ", therapyData.StudentHealthRecordID)
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("Health record ID does not exist."))
-		return
-	}
-
 	therapyData.Status = "SentToFoodService"
 
-	err = h.healthCareRepo.SaveAndShareTherapyDataWithDietService(therapyData)
+	err := h.healthCareRepo.SaveAndShareTherapyDataWithDietService(therapyData)
 	if err != nil {
 		h.logger.Print("Error sharing therapy data with diet service: ", err)
 		rw.WriteHeader(http.StatusInternalServerError)

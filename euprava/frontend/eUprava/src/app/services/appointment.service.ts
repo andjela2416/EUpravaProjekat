@@ -37,6 +37,14 @@ export class AppointmentService {
     return this.http.post<any>(`${environment.baseApiUrl}/${this.url}/therapy`, therapy);
   }
 
+  getTherapies(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/therapies`);
+  }
+
+  getHealthRecords(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/healthrecords`);
+  }
+
   getFreeAppointments(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/not_reserved`);
   }
