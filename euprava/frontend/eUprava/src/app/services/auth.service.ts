@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import {BehaviorSubject, map, Observable} from 'rxjs';
+import {environment} from "../environments/environment";
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +13,7 @@ export class AuthService {
   private userTypeSubject = new BehaviorSubject<string | null>(this.getUserType());
   userType$ = this.userTypeSubject.asObservable();
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   hasToken(): boolean {
     return !!localStorage.getItem('token');
@@ -40,5 +42,18 @@ export class AuthService {
     localStorage.removeItem('userType');
     this.userTypeSubject.next(null);
     localStorage.removeItem('user_id');
+  }
+
+  getUser(userId: string): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:8080/users/${userId}`);
+  }
+
+  getUserName(userId: string): Observable<string> {
+    return this.http.get<any>(`http://localhost:8080/users/${userId}`).pipe(
+        map(user => {
+          console.log(user.firstName, user.lastName);
+          return `${user.firstName} ${user.lastName}`;
+        })
+    );
   }
 }

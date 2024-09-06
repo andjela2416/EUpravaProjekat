@@ -4,7 +4,10 @@ go 1.21
 
 toolchain go1.23.0
 
-require github.com/gin-gonic/gin v1.10.0
+require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-gonic/gin v1.10.0
+)
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect

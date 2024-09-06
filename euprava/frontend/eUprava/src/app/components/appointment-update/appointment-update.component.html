@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" [ngClass]="{'mrg': !appointmentForm.get('systematic')?.value, 'normal': appointmentForm.get('systematic')?.value}">
 <div class="appointment-update-container">
   <h2>Update Appointment</h2>
   <form [formGroup]="appointmentForm" (ngSubmit)="updateAppointment()">
@@ -19,24 +19,20 @@
       <label for="description">Description</label>
       <textarea id="description" formControlName="description"></textarea>
     </div>
-    <div>
-      <label for="systematic">Systematic</label>
-      <input id="systematic" formControlName="systematic" type="checkbox" class="align-right">
-    </div>
-    <div>
+    <div *ngIf="appointmentForm.get('systematic')?.value">
       <label for="faculty_name">Faculty Name</label>
       <input id="faculty_name" formControlName="faculty_name" type="text">
     </div>
-    <div>
+    <div *ngIf="appointmentForm.get('systematic')?.value">
       <label for="field_of_study">Field of Study</label>
       <input id="field_of_study" formControlName="field_of_study" type="text">
     </div>
-    <div>
-      <label for="reserved" class="label-right">Reserved</label>
-      <input id="reserved" formControlName="reserved" type="checkbox" class="align-right">
+    <div *ngIf="!appointmentForm.get('systematic')?.value">
+      <label for="reserved">Reserved</label>
+      <input id="reserved" formControlName="reserved" type="checkbox"  class="align-right"/>
     </div>
 
-    <div class="button-group">
+    <div class="button-group"  [ngStyle]="{'margin-top': appointmentForm.get('systematic')?.value ? '20px' : '0'}">
       <button type="submit" [disabled]="!appointmentForm.valid">Update</button>
       <button type="button" (click)="goBack()">Cancel</button>
     </div>

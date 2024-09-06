@@ -1,33 +1,63 @@
-<!-- appointment-list.component.html -->
-<div class="appointment-table-container">
-  <table class="appointment-table">
-    <thead>
-    <tr>
-      <th class="date-column">Date</th>
-      <th>Student</th>
-      <th>Door Number</th>
-      <th>Description</th>
-      <th>Systematic</th>
-      <th>Faculty</th>
-      <th>Field of Study</th>
-      <th>Reserved</th>
-      <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr *ngFor="let appointment of appointments">
-      <td class="date-column">{{ appointment.date | date: 'short' }}</td>
-      <td>{{ appointment.student || 'null' }}</td>
-      <td>{{ appointment.door_number }}</td>
-      <td>{{ appointment.description || 'null' }}</td>
-      <td>{{ appointment.systematic }}</td>
-      <td>{{ appointment.faculty_name || 'null' }}</td>
-      <td>{{ appointment.field_of_study || 'null' }}</td>
-      <td>{{ appointment.reserved }}</td>
-      <td>
-        <button class="button" (click)="updateAppointment(appointment.id)">Azuriraj</button>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+<div class="appointment-section">
+  <h1 class="section-title">Appointment List</h1>
+
+  <div class="table-wrapper">
+    <div class="appointment-table-container" style="margin-left: 40px">
+      <h2>Obični pregledi</h2>
+      <table class="appointment-table">
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th>Door Number</th>
+          <th>Reserved</th>
+          <th>Student</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let appointment of appointments">
+          <td class="date-column">{{ appointment.date | date: 'short' }}</td>
+          <td>{{ appointment.door_number }}</td>
+          <td>{{ appointment.reserved }}</td>
+          <td>{{ appointment.student_id?.first_name || '' }} {{ appointment.student_id?.last_name || '' }}</td>
+          <td>{{ appointment.description || '' }}</td>
+          <td>
+            <button class="button" (click)="updateAppointment(appointment.id)">Azuriraj</button>
+            <button class="button delete-button" (click)="deleteAppointment(appointment.id)">Obriši</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="appointment-table-container" style="margin-right: 40px">
+      <h2>Sistematski pregledi</h2>
+      <table class="appointment-table">
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th>Door Number</th>
+          <th>Faculty</th>
+          <th>Field of Study</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let systematicAppointment of systematicAppointments">
+          <td class="date-column">{{ systematicAppointment.date | date: 'short' }}</td>
+          <td>{{ systematicAppointment.door_number }}</td>
+          <td>{{ systematicAppointment.faculty_name || '' }}</td>
+          <td>{{ systematicAppointment.field_of_study || '' }}</td>
+          <td>{{ systematicAppointment.description || '' }}</td>
+          <td>
+            <button class="button" (click)="updateAppointment(systematicAppointment.id)">Azuriraj</button>
+            <button class="button delete-button" (click)="deleteAppointment(systematicAppointment.id)">Obriši</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

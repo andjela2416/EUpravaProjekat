@@ -4,11 +4,13 @@
   <form [formGroup]="checkupForm" (ngSubmit)="onSubmit()">
     <div>
       <label for="date">Datum:</label>
-      <input type="datetime-local" id="date" formControlName="date">
+      <input type="datetime-local" id="date" formControlName="date" [attr.min]="minDate">
+      <div *ngIf="hasError('date', 'required')" class="text-danger">Datum i vreme su obavezni.</div>
     </div>
     <div>
       <label for="doorNumber">Broj Ordinacije:</label>
       <input type="number" id="doorNumber" formControlName="doorNumber">
+      <div *ngIf="hasError('doorNumber', 'required')" class="text-danger">Broj ordinacije je obavezan.</div>
     </div>
     <div>
       <label for="description">Opis:</label>
@@ -17,10 +19,12 @@
     <div>
       <label for="faculty_name">Ime fakulteta:</label>
       <input type="text" id="faculty_name" formControlName="faculty_name">
+      <div *ngIf="hasError('faculty_name', 'required')" class="text-danger">Ime fakulteta je obavezno.</div>
     </div>
     <div>
       <label for="field_of_study">Smer:</label>
       <input type="text" id="field_of_study" formControlName="field_of_study">
+      <div *ngIf="hasError('field_of_study', 'required')" class="text-danger">Ime smera je obavezno.</div>
     </div>
     <button type="submit" [disabled]="!checkupForm.valid">Kreiraj Pregled</button>
   </form>

@@ -56,7 +56,7 @@ export class CreateAppointmentComponent implements OnInit {
 
       console.log(appointmentData);
 
-      this.appointmentService.createAppointment(appointmentData)
+      this.appointmentService.createAppointment(appointmentData,loggedUserId)
         .subscribe(
           response => {
             console.log('Appointment created successfully:');

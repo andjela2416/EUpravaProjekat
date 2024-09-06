@@ -21,8 +21,12 @@ import { CreateFoodComponent } from './components/foodservicefront/therapy-list/
 
 import {LoginComponent} from "./components/login/login.component";
 import {RegisterComponent} from "./components/register/register.component";
+
 import { UpdateFoodComponent } from './components/foodservicefront/update-food/update-food.component';
 import { HomeRadnikComponent } from './components/foodservicefront/home-radnik/home-radnik.component';
+
+
+import { HomepageComponent } from './homepage/homepage.component';
 
 
 @NgModule({
@@ -38,10 +42,14 @@ import { HomeRadnikComponent } from './components/foodservicefront/home-radnik/h
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
     StudentCancelAppointmentListComponent,
+
     CreateFoodComponent,
     UpdateFoodComponent,
     HomeRadnikComponent,
    
+
+
+    HomepageComponent,
 
   ],
   imports: [

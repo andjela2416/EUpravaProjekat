@@ -13,17 +13,30 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class SystematicCheckupComponent {
   checkupForm: FormGroup;
+  minDate: string;
 
   constructor(private fb: FormBuilder, private appointmentService: AppointmentService, private router:Router, private authService: AuthService) {
+    this.minDate = this.getMinDate();
     this.checkupForm = this.fb.group({
        studentID: [''],
        date: ['', Validators.required],
        doorNumber: ['', Validators.required],
        description: [''],
-       faculty_name:[''],
-       field_of_study:['']
+       faculty_name:['', Validators.required],
+       field_of_study:['', Validators.required]
     });
   }
+
+  getMinDate(): string {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    const hours = '00';
+    const minutes = '00';
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
 
   onSubmit() {
       if (this.checkupForm.valid) {
@@ -46,7 +59,7 @@ export class SystematicCheckupComponent {
         };
         console.log(appointmentData);
 
-        this.appointmentService.createAppointment(appointmentData)
+        this.appointmentService.createAppointment(appointmentData, loggedUserId)
           .subscribe(
             response => {
               console.log('Appointment created successfully:', response);
@@ -62,4 +75,8 @@ export class SystematicCheckupComponent {
         // Form not valid, handle error or validation messages
       }
     }
+  // Helper method to check if a form control has an error
+  hasError(controlName: string, errorName: string) {
+    return this.checkupForm.controls[controlName].hasError(errorName);
+  }
   }

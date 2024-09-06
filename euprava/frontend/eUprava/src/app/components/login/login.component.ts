@@ -38,7 +38,7 @@ export class LoginComponent {
             this.errorMessage = null;
             alert('Login successful!');
             if (response.user.user_type == "student") {
-              this.router.navigate(['/student-appointment-management']);
+              this.router.navigate(['/homepage']);
             } else if (response.user.user_type == "doctor") {
               this.router.navigate(['/appointment-management']);
             } else if (response.user.user_type == "cook") {

@@ -12,8 +12,12 @@ import { StudentAppointmentListComponent } from './components/student-appointmen
 import { StudentCancelAppointmentListComponent } from './components/student-cancel-appointment-list/student-cancel-appointment-list.component';
 import {LoginComponent} from "./components/login/login.component";
 import {RegisterComponent} from "./components/register/register.component";
+
 import { HomeRadnikComponent } from './components/foodservicefront/home-radnik/home-radnik.component'; // Apsolutna putanja do komponente
 import { CreateFoodComponent } from './components/foodservicefront/therapy-list/create-food.component';
+
+import {HomepageComponent} from "./homepage/homepage.component";
+
 const routes: Routes = [
   { path: 'therapy-list', component: CreateFoodComponent },
   { path: 'home-radnik', component: HomeRadnikComponent },
@@ -30,6 +34,7 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'appointment-management', component: AppointmentManagementComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'homepage', component: HomepageComponent},
 ];
 
 
