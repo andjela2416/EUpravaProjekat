@@ -54,12 +54,32 @@ export class AppointmentListUpdateComponent implements OnInit {
     this.router.navigate(['/update-appointment', appointmentId]);
   }
 
-  deleteAppointment(id: string): void {
-    if (confirm('Da li ste sigurni da želite da obrišete ovaj termin??')) {
+  deleteAppointment(id: string, appointmentDate: string): void {
+    if (!this.rule24h(appointmentDate)) {
+      alert('Ne možete obrisati termin zakazan za manje od 24 sata.');
+      return;
+    }
+
+    if (confirm('Da li ste sigurni da želite da obrišete ovaj termin?')) {
       this.appointmentService.deleteAppointment(id).subscribe(() => {
+
         this.appointments = this.appointments.filter(app => app.id !== id);
         this.systematicAppointments = this.systematicAppointments.filter(app => app.id !== id);
       });
     }
   }
+
+  rule24h(appointmentDate: string): boolean {
+    const now = new Date();
+    const appointment = new Date(appointmentDate);
+    const hoursDifference = (appointment.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursDifference >= 24;
+  }
+
+  isFutureDate(appointmentDate: string): boolean {
+    const now = new Date();
+    const appointment = new Date(appointmentDate);
+    return appointment > now;
+  }
+
 }
