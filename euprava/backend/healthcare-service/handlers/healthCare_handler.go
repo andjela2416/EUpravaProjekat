@@ -155,13 +155,27 @@ func (h *HealthCareHandler) DeleteUser(rw http.ResponseWriter, r *http.Request) 
 	rw.WriteHeader(http.StatusOK)
 }
 
-// CreateAppointment kreira novi pregled sa reserved postavljenim na false
 func (h *HealthCareHandler) CreateAppointment(rw http.ResponseWriter, r *http.Request) {
-	appointmentData := r.Context().Value(KeyProduct{}).(*data.AppointmentData)
+	userID := r.URL.Query().Get("doctorId")
+	if userID == "" {
+		http.Error(rw, "User ID is required", http.StatusBadRequest)
+		return
+	}
 
+	// Konverzija userID u ObjectID
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		h.logger.Println("Invalid user ID:", err)
+		http.Error(rw, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	appointmentData := r.Context().Value(KeyProduct{}).(*data.AppointmentData)
 	fmt.Printf("Received appointment: %+v\n", appointmentData)
 
-	err := h.healthCareRepo.CreateAppointment(r, appointmentData)
+	appointmentData.DoctorID = oid
+
+	err = h.healthCareRepo.CreateAppointment(r, appointmentData)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		http.Error(rw, "Error creating appointment.", http.StatusInternalServerError)
@@ -234,6 +248,7 @@ func (h *HealthCareHandler) DeleteAppointment(rw http.ResponseWriter, r *http.Re
 func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.Request) {
 	var request struct {
 		AppointmentID string `json:"appointment_id"`
+		UserID        string `json:"user_id"` // Dodajte UserID
 	}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -251,7 +266,15 @@ func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.healthCareRepo.ScheduleAppointment(r, appointmentID)
+	userID, err := primitive.ObjectIDFromHex(request.UserID)
+	if err != nil {
+		h.logger.Println("Invalid user ID:", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Invalid user ID"))
+		return
+	}
+
+	err = h.healthCareRepo.ScheduleAppointment(r, appointmentID, userID)
 	if err != nil {
 		h.logger.Println("Error scheduling appointment:", err)
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -264,8 +287,20 @@ func (h *HealthCareHandler) ScheduleAppointment(rw http.ResponseWriter, r *http.
 
 // GetAllReservedAppointmentsForUser vraća sve rezervisane termine pregleda za određenog korisnika.
 func (h *HealthCareHandler) GetAllReservedAppointmentsForUser(rw http.ResponseWriter, r *http.Request) {
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(rw, "User ID is required", http.StatusBadRequest)
+		return
+	}
 
-	appointments, err := h.healthCareRepo.GetAllReservedAppointmentsForUser(r)
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		h.logger.Print("Invalid user ID format: ", err)
+		http.Error(rw, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	appointments, err := h.healthCareRepo.GetAllReservedAppointmentsForUser(userID)
 	if err != nil {
 		h.logger.Print("Database exception: ", err)
 		http.Error(rw, "Error retrieving reserved appointments.", http.StatusInternalServerError)

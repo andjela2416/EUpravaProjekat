@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Appointment } from '../models/appointment.model';
 import { TherapyData } from '../models/appointment.model';
@@ -13,8 +13,8 @@ export class AppointmentService {
   private url = "healthcare";
   constructor(private http: HttpClient) { }
 
-  createAppointment(appointment: Appointment): Observable<any> {
-    return this.http.post<any>(`${environment.baseApiUrl}/${this.url}/appointments`, appointment);
+  createAppointment(appointment: Appointment, userId: string): Observable<any> {
+    return this.http.post<any>(`${environment.baseApiUrl}/${this.url}/appointments?doctorId=${userId}`, appointment);
   }
 
   getAppointments(): Observable<any[]> {
@@ -45,16 +45,21 @@ export class AppointmentService {
     return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reserved`);
   }
 
-  getReservedAppointmentsByStudent(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reservedByStudent`);
+  getReservedAppointmentsByStudent(userId: string | null ): Observable<any[]> {
+    let params = new HttpParams();
+
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/reservedByStudent`, { params });
   }
 
   getAppointmentsByDoctor(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.baseApiUrl}/${this.url}/appointments/byUser`);
   }
 
-  scheduleAppointment(appointmentId: string): Observable<any> {
-    const requestBody = { appointment_id: appointmentId };
+  scheduleAppointment(appointmentId: string, userId: string | null): Observable<any> {
+    const requestBody = { appointment_id: appointmentId, user_id: userId};
     return this.http.post<any>(`${environment.baseApiUrl}/${this.url}/appointments/schedule`, requestBody);
   }
 

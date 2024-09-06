@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppointmentService } from 'src/app/services/appointment.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -10,22 +11,35 @@ import { Router } from '@angular/router';
 export class StudentCancelAppointmentListComponent implements OnInit {
   appointments: any[] = [];
 
-  constructor(private appointmentService: AppointmentService, private router: Router) { }
+  constructor(private appointmentService: AppointmentService, private router: Router, private authService: AuthService) { }
 
   ngOnInit(): void {
-    this.loadAppointments();
+    this.loadAppointments()
   }
 
   loadAppointments(): void {
-    this.appointmentService.getReservedAppointmentsByStudent().subscribe(
+    this.appointmentService.getReservedAppointmentsByStudent(localStorage.getItem('user_id')).subscribe(
       (data) => {
         this.appointments = data;
+        this.loadDoctorsInfo();
       },
       (error) => {
         console.error('Error loading appointments:', error);
-        // Handle error as needed
       }
     );
+  }
+
+  loadDoctorsInfo(): void {
+    this.appointments.forEach((appointment) => {
+      this.authService.getUser(appointment.doctor_id).subscribe(
+        (doctor) => {
+          appointment.doctor_id = doctor;
+        },
+        (error) => {
+          console.error('Error loading doctor info:', error);
+        }
+      );
+    });
   }
 
   cancelAppointment(id: string): void {

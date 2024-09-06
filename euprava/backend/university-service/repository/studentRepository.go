@@ -2,8 +2,12 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -593,4 +597,132 @@ func (r *Repository) PayTuition(payment *TuitionPayment) error {
 	collection := r.getCollection("tuitionPayments")
 	_, err := collection.InsertOne(context.TODO(), payment)
 	return err
+}
+
+func (r *Repository) CreateNotification(notification *Notification) error {
+	collection := r.getCollection("notifications")
+	notification.ID = primitive.NewObjectID()
+	notification.CreatedAt = time.Now()
+	_, err := collection.InsertOne(context.Background(), notification)
+	fmt.Print("lolanaa", notification)
+	return err
+}
+
+func (r *Repository) GetNotificationByDescription(facultyName string, fieldOfStudy string) (*Notification, error) {
+	var notification Notification
+	collection := r.getCollection("notifications")
+
+	combinedRegex := fmt.Sprintf("%s.*%s|%s.*%s", facultyName, fieldOfStudy, fieldOfStudy, facultyName)
+
+	filter := bson.M{
+		"description": bson.M{"$regex": combinedRegex, "$options": "i"},
+	}
+
+	err := collection.FindOne(context.TODO(), filter).Decode(&notification)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	fmt.Print("lolanaaH", &notification)
+	return &notification, nil
+}
+
+func (r *Repository) UpdateNotification(notification *Notification) error {
+	collection := r.getCollection("notifications")
+	filter := bson.M{"_id": notification.ID}
+
+	var currentNotification Notification
+	err := collection.FindOne(context.TODO(), filter).Decode(&currentNotification)
+	if err != nil {
+		return err
+	}
+
+	currentContent := currentNotification.Content
+
+	descriptionIndex := strings.Index(currentContent, "Description:")
+	if descriptionIndex != -1 {
+
+		descriptionEndIndex := strings.Index(currentContent[descriptionIndex:], ",")
+		if descriptionEndIndex != -1 {
+			newContent := currentContent[:descriptionIndex] + "Description: Otkazano"
+			update := bson.M{
+				"$set": bson.M{
+					"content": newContent,
+				},
+			}
+			fmt.Print("lolanaas", newContent)
+			_, err = collection.UpdateOne(context.TODO(), filter, update)
+			return err
+		}
+	}
+
+	newContent := currentContent + ", Description: Otkazano"
+	update := bson.M{
+		"$set": bson.M{
+			"content": newContent,
+		},
+	}
+
+	fmt.Print("lolanaac", newContent)
+
+	_, err = collection.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+func (r *Repository) GetNotificationByID(id string) (*Notification, error) {
+	collection := r.getCollection("notifications")
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var notification Notification
+	err = collection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&notification)
+	if err != nil {
+		return nil, err
+	}
+	return &notification, nil
+}
+
+func (r *Repository) GetAllNotifications() (Notifications, error) {
+	collection := r.getCollection("notifications")
+
+	cur, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+
+	var notifications Notifications
+	for cur.Next(context.Background()) {
+		var notification Notification
+		err := cur.Decode(&notification)
+		if err != nil {
+			return nil, err
+		}
+		notifications = append(notifications, &notification)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return notifications, nil
+}
+
+func (r *Repository) DeleteNotification(id string) error {
+	collection := r.getCollection("notifications")
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objectID})
+	if err != nil {
+		return err
+	}
+	return nil
 }

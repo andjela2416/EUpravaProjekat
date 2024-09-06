@@ -20,8 +20,8 @@ export class SystematicCheckupComponent {
        date: ['', Validators.required],
        doorNumber: ['', Validators.required],
        description: [''],
-       faculty_name:[''],
-       field_of_study:['']
+       faculty_name:['', Validators.required],
+       field_of_study:['', Validators.required]
     });
   }
 
@@ -46,7 +46,7 @@ export class SystematicCheckupComponent {
         };
         console.log(appointmentData);
 
-        this.appointmentService.createAppointment(appointmentData)
+        this.appointmentService.createAppointment(appointmentData, loggedUserId)
           .subscribe(
             response => {
               console.log('Appointment created successfully:', response);
@@ -62,4 +62,8 @@ export class SystematicCheckupComponent {
         // Form not valid, handle error or validation messages
       }
     }
+  // Helper method to check if a form control has an error
+  hasError(controlName: string, errorName: string) {
+    return this.checkupForm.controls[controlName].hasError(errorName);
+  }
   }
