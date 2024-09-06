@@ -101,6 +101,9 @@ func main() {
 	updateHealthRecord.HandleFunc("/healthrecords/{id}", healthCareHandler.UpdateHealthRecord)
 	updateHealthRecord.Use(healthCareHandler.MiddlewareHealthRecordDeserialization)
 
+	getHealthRecords := router.Methods(http.MethodGet).Subrouter()
+	getHealthRecords.HandleFunc("/healthrecords", healthCareHandler.GetAllHealthRecords)
+
 	router.HandleFunc("/healthrecords", healthCareHandler.GetHealthRecordByID).Methods(http.MethodGet)
 
 	// Inicijalizacija HTTP servera

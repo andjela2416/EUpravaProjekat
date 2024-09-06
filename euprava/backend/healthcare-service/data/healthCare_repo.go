@@ -150,6 +150,25 @@ func (rr *HealthCareRepo) GetAllUsers() (*Users, error) {
 	return &users, nil
 }
 
+func (rr *HealthCareRepo) GetAllHealthRecords() (*HealthRecords, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	hrCollection := rr.getCollection("health_records")
+
+	var hr HealthRecords
+	hrCursor, err := hrCollection.Find(ctx, bson.M{})
+	if err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	if err = hrCursor.All(ctx, &hr); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	return &hr, nil
+}
+
 // GetStudentByID vraća studenta po ID-ju.
 func (rr *HealthCareRepo) GetUserByID(userID string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
@@ -326,58 +345,6 @@ func (rr *HealthCareRepo) DeleteUser(userID string) error {
 	return nil
 }
 
-func (rr *HealthCareRepo) GetTokenFromSession(r *http.Request) (string, error) {
-	session, err := rr.store.Get(r, "session-name")
-	if err != nil {
-		return "", err
-	}
-
-	token, ok := session.Values["token"].(string)
-	if !ok {
-		return "", errors.New("token not found in session")
-	}
-
-	return token, nil
-}
-
-func (rr *HealthCareRepo) GetLoggedUser(r *http.Request) (*AuthUser, error) {
-	token, err := rr.GetTokenFromSession(r)
-	if err != nil {
-		return nil, err
-	}
-
-	meEndpoint := "http://localhost:8080/user/me"
-
-	req, err := http.NewRequest("GET", meEndpoint, nil)
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return nil, err
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending GET request:", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Unexpected status code:", resp.StatusCode)
-		return nil, errors.New("Unexpected status code")
-	}
-
-	var user AuthUser
-	err = json.NewDecoder(resp.Body).Decode(&user)
-	if err != nil {
-		fmt.Println("Error decoding JSON response:", err)
-		return nil, err
-	}
-
-	return &user, nil
-}
-
 // CreateAppointment kreira novi pregled sa reserved postavljenim na false.
 func (rr *HealthCareRepo) CreateAppointment(r *http.Request, appointmentData *AppointmentData) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -404,14 +371,18 @@ func (rr *HealthCareRepo) CreateAppointment(r *http.Request, appointmentData *Ap
 }
 
 // GetAllReservedAppointmentsForUser vraća sve rezervisane termine pregleda za određenog korisnika.
-func (rr *HealthCareRepo) GetAllReservedAppointmentsForUser(r *http.Request) (*Appointments, error) {
+func (rr *HealthCareRepo) GetAllReservedAppointmentsForUser(userID primitive.ObjectID) (*Appointments, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	examinationsCollection := rr.getCollection("examinations")
 
-	// Pronađi sve rezervisane termine pregleda za datog korisnika
-	cursor, err := examinationsCollection.Find(ctx, bson.M{"reserved": true})
+	filter := bson.M{
+		"reserved":   true,
+		"student_id": userID,
+	}
+
+	cursor, err := examinationsCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -532,14 +503,47 @@ func (rr *HealthCareRepo) UpdateAppointment(id string, appointment *AppointmentD
 	return nil
 }
 
-// DeleteAppointment briše pregled.
-func (rr *HealthCareRepo) DeleteAppointment(appointmentID primitive.ObjectID) error {
+func (rr *HealthCareRepo) DeleteAppointment(appointmentID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	examinationsCollection := rr.getCollection("examinations")
 
-	_, err := examinationsCollection.DeleteOne(ctx, bson.M{"_id": appointmentID})
+	objectID, err := primitive.ObjectIDFromHex(appointmentID)
+	if err != nil {
+		rr.logger.Println("Error converting ID to ObjectID:", err)
+		return err
+	}
+
+	var appointmentData AppointmentData
+	err = examinationsCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&appointmentData)
+	if err != nil {
+		return err
+	}
+
+	if appointmentData.Systematic {
+		appointmentData.Description = "Otkazano."
+
+		err := rr.UpdateAppointment(appointmentID, &appointmentData)
+		if err != nil {
+			log.Print("Error updating appointment", http.StatusInternalServerError)
+			return err
+		}
+		var a AppointmentData
+		err = examinationsCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&appointmentData)
+		if err != nil {
+			return err
+		}
+		fmt.Println(a)
+
+		log.Printf("Slanje sistematskih podataka servisu univerziteta: %v", appointmentData)
+		if err := rr.SendSystematicDataToUniversityService(&appointmentData); err != nil {
+			log.Printf("Greška prilikom slanja podataka servisu univerziteta: %v", err)
+			return err
+		}
+	}
+
+	_, err = examinationsCollection.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
 		return err
 	}
@@ -548,24 +552,28 @@ func (rr *HealthCareRepo) DeleteAppointment(appointmentID primitive.ObjectID) er
 }
 
 // ScheduleAppointment zakazuje pregled za određenog studenta.
-func (rr *HealthCareRepo) ScheduleAppointment(r *http.Request, appointmentID primitive.ObjectID) error {
+func (rr *HealthCareRepo) ScheduleAppointment(r *http.Request, appointmentID, userID primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Dobavimo kolekciju 'examinations'
+	err := rr.CreateHealthRecord(userID)
+	if err != nil {
+		return err
+	}
+
 	examinationsCollection := rr.getCollection("examinations")
 
-	// Kreiramo filter za pretragu pregleda po ID-ju
-	filter := bson.M{"_id": appointmentID}
+	filter := bson.M{
+		"_id": appointmentID,
+	}
 
-	// Kreiramo update za postavljanje reserved na true i studentId na ID prijavljenog korisnika
 	update := bson.M{
 		"$set": bson.M{
-			"reserved": true,
+			"reserved":   true,
+			"student_id": userID,
 		},
 	}
 
-	// Pokušamo ažurirati dokument
 	result, err := examinationsCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		rr.logger.Println("Greška pri zakazivanju pregleda:", err)
@@ -578,6 +586,35 @@ func (rr *HealthCareRepo) ScheduleAppointment(r *http.Request, appointmentID pri
 	}
 
 	rr.logger.Printf("Uspešno zakazan pregled sa ID: %v\n", appointmentID)
+	return nil
+}
+
+// Kreira zdravstveni karton za korisnika ako ne postoji.
+func (rr *HealthCareRepo) CreateHealthRecord(userID primitive.ObjectID) error {
+	_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	exists, err := rr.CheckHealthRecordExists(userID)
+	if err != nil {
+		rr.logger.Println("Greška pri proveri zdravstvenog kartona:", err)
+		return err
+	}
+
+	if exists {
+		return nil
+	}
+
+	healthRecord := &HealthRecord{
+		UserID:     userID,
+		RecordData: "Initial health record for user",
+	}
+
+	insertedID, err := rr.InsertHealthRecord(healthRecord)
+	if err != nil {
+		return err
+	}
+
+	rr.logger.Printf("Uspešno kreiran zdravstveni karton za korisnika sa ID: %v\n, %v\n", userID, insertedID)
 	return nil
 }
 
@@ -640,7 +677,13 @@ func (rr *HealthCareRepo) GetAllNotReservedAppointments() (*Appointments, error)
 	defer cancel()
 
 	examinationsCollection := rr.getCollection("examinations")
-	cursor, err := examinationsCollection.Find(ctx, bson.M{"reserved": false})
+
+	filter := bson.M{
+		"reserved": false,
+		"date":     bson.M{"$gte": time.Now()},
+	}
+
+	cursor, err := examinationsCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -860,13 +903,12 @@ func (rr *HealthCareRepo) SendTherapyDataToDietService(id primitive.ObjectID, th
 }
 
 // Proverava da li postoji HealthRecordID
-func (rr *HealthCareRepo) CheckHealthRecordExists(healthRecordID primitive.ObjectID) (bool, error) {
+func (rr *HealthCareRepo) CheckHealthRecordExists(userId primitive.ObjectID) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	recordsCollection := rr.getCollection("health_records")
 
-	// Proveri da li zapis postoji
-	filter := bson.M{"_id": healthRecordID}
+	filter := bson.M{"userId": userId}
 	count, err := recordsCollection.CountDocuments(ctx, filter)
 	if err != nil {
 		rr.logger.Println("Error checking health record existence:", err)

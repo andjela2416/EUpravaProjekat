@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"time"
 	repositories "university-service/repository"
 
 	"github.com/gin-gonic/gin"
@@ -726,4 +727,112 @@ func (ctrl *Controllers) PayTuition(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Tuition payment successful!"})
+}
+func (ctrl *Controllers) CreateNotificationHandler(c *gin.Context) {
+	var newNotification repositories.Notification
+	if err := c.ShouldBindJSON(&newNotification); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := ctrl.Repo.CreateNotification(&newNotification); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusCreated)
+}
+
+func (ctrl *Controllers) CreateNotificationByHealthcareHandler(c *gin.Context) {
+	var appointmentData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&appointmentData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	description := "Systematic check appointment details: "
+	if date, ok := appointmentData["date"].(string); ok {
+		description += "Date: " + date + ", "
+	}
+	var facultyName, fieldOfStudy string
+	if facultyNameVal, ok := appointmentData["faculty_name"].(string); ok {
+		facultyName = facultyNameVal
+		description += "Faculty: " + facultyName + ", "
+	}
+	if fieldOfStudyVal, ok := appointmentData["field_of_study"].(string); ok {
+		fieldOfStudy = fieldOfStudyVal
+		description += "Field of Study: " + fieldOfStudy + ", "
+	}
+	if descriptionText, ok := appointmentData["description"].(string); ok {
+		description += "Description: " + descriptionText
+	}
+
+	existingNotification, err := ctrl.Repo.GetNotificationByDescription(facultyName, fieldOfStudy)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+		return
+	}
+
+	if existingNotification != nil {
+		existingNotification.Content = description
+		if err := ctrl.Repo.UpdateNotification(existingNotification); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.Status(http.StatusOK)
+		return
+	} else {
+		notification := repositories.Notification{
+			Title:     "New Appointment for Systematic Check Notification",
+			Content:   description,
+			CreatedAt: time.Now(),
+		}
+
+		if err := ctrl.Repo.CreateNotification(&notification); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (ctrl *Controllers) GetNotificationByIDHandler(c *gin.Context) {
+	notificationID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+		return
+	}
+
+	notification, err := ctrl.Repo.GetNotificationByID(notificationID.Hex())
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, notification)
+}
+
+func (ctrl *Controllers) GetAllNotificationsHandler(c *gin.Context) {
+	notifications, err := ctrl.Repo.GetAllNotifications()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, notifications)
+}
+
+func (ctrl *Controllers) DeleteNotificationHandler(c *gin.Context) {
+	notificationID := c.Param("id")
+
+	err := ctrl.Repo.DeleteNotification(notificationID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

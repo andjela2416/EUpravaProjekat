@@ -67,8 +67,8 @@ type Therapies []*TherapyData
 // predstavlja pregled pacijenta
 type AppointmentData struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	DoctorID     string             `bson:"doctor_id" json:"doctor_id"`
-	StudentID    string             `bson:"student_id,omitempty" json:"student_id,omitempty"`
+	DoctorID     primitive.ObjectID `bson:"doctor_id" json:"doctor_id"`
+	StudentID    primitive.ObjectID `bson:"student_id,omitempty" json:"student_id,omitempty"`
 	Date         time.Time          `bson:"date,omitempty" json:"date,omitempty"`
 	DoorNumber   int                `bson:"door_number" json:"door_number"`
 	Description  string             `bson:"description" json:"description"`

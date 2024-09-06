@@ -18,6 +18,7 @@ import { StudentCancelAppointmentListComponent } from './components/student-canc
 import { NavbarComponent } from './components/navbar/navbar.component';
 import {LoginComponent} from "./components/login/login.component";
 import {RegisterComponent} from "./components/register/register.component";
+import { HomepageComponent } from './homepage/homepage.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import {RegisterComponent} from "./components/register/register.component";
     StudentAppointmentManagementComponent,
     StudentAppointmentListComponent,
     StudentCancelAppointmentListComponent,
+    HomepageComponent,
   ],
   imports: [
     BrowserModule,

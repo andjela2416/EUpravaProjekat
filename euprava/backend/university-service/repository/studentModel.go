@@ -112,6 +112,30 @@ type TuitionPayment struct {
 	Date      time.Time          `bson:"date" json:"date"`
 }
 
+type Notification struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Title     string             `bson:"title" json:"title" validate:"required"`
+	Content   string             `bson:"content" json:"content"`
+	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+}
+
+type Notifications []*Notification
+
+func (n *Notifications) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(n)
+}
+
+func (n *Notification) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(n)
+}
+
+func (n *Notification) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(n)
+}
+
 func (u *University) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(u)

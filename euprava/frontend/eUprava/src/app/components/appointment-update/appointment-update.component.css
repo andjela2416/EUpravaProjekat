@@ -80,4 +80,8 @@
 
 .text-danger{
   font-size: 12px;
+  color: #c82333;
+}
+.mrg{
+  margin-top: 60px;
 }
